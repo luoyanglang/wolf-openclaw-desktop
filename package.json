@@ -137,6 +137,7 @@
         "owner": "rshodoskar-star",
         "repo": "openclaw-desktop"
       }
-    ]
+    ],
+    "npmRebuild": false
   }
 }
