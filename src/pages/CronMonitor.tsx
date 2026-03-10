@@ -581,9 +581,6 @@ export function CronMonitorPage() {
             }
           }
         } catch { /* ignore poll errors, retry next interval */ }
-
-        // Refresh job list to update spinners/status in sidebar
-        if (!abort.signal.aborted) await refreshGroup('cron');
       }
 
       if (!finished && !abort.signal.aborted) {
