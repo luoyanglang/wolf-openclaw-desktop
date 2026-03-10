@@ -14,3 +14,10 @@ AEGIS-Desktop-v5-UPGRADE-PLAN.md
 *-concept*.html
 .trash/
 scripts/full-usage-stats.js
+-e 
+S2S-RESEARCH.md
+VOICE-LIVE-PLAN.md
+final_summary.txt
+patch-ar-voice.js
+patch-voice-i18n.js
+RELEASE_NOTES.md

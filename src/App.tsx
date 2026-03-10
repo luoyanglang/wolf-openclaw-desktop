@@ -24,6 +24,9 @@ const FileManagerPage = lazy(() => import('@/pages/FileManager').then(m => ({ de
 const CalendarPage = lazy(() => import('@/pages/Calendar'));
 const CodeInterpreterPage = lazy(() => import('@/pages/CodeInterpreter').then(m => ({ default: m.CodeInterpreterPage })));
 const McpToolsPage = lazy(() => import('@/pages/McpTools').then(m => ({ default: m.McpToolsPage })));
+const PixelAgentsPage = lazy(() => import('@/pages/PixelAgents').then(m => ({ default: m.PixelAgentsPage })));
+const PluginsPage = lazy(() => import('@/pages/PluginsPage').then(m => ({ default: m.PluginsPage })));
+const VoiceLivePage = lazy(() => import('@/pages/VoiceLive').then(m => ({ default: m.VoiceLivePage })));
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { gateway } from '@/services/gateway';
@@ -99,7 +102,7 @@ export default function App() {
         if (main.thinkingLevel !== undefined) setCurrentThinking(main.thinkingLevel ?? null);
       }
     } catch { /* silent */ }
-  }, [setTokenUsage]);
+  }, [setTokenUsage, setCurrentModel, setCurrentThinking, manualModelOverride]);
 
   // ── Load Available Models from Gateway ──
   // Multi-strategy: config.get → agents.list + session → fallback
@@ -225,7 +228,36 @@ export default function App() {
       },
     });
 
-    initConnection();
+    // Initialize gateway connection
+    (async () => {
+      const DEFAULT_URL = 'ws://127.0.0.1:18789';
+      const settings = useSettingsStore.getState();
+      const userUrl = settings.gatewayUrl?.trim() || '';
+      const userToken = settings.gatewayToken?.trim() || '';
+
+      try {
+        if (window.aegis?.config) {
+          const config = await window.aegis.config.get();
+          const configUrl = config.gatewayUrl || config.gatewayWsUrl || DEFAULT_URL;
+          const configToken = config.gatewayToken || '';
+          const wsUrl = userUrl || configUrl;
+          const token = userToken || configToken;
+          const httpUrl = wsUrl.replace(/^ws:/, 'http:').replace(/^wss:/, 'https:');
+          setGatewayHttpUrl(httpUrl);
+          localStorage.setItem('aegis-gateway-http', httpUrl);
+          if (!localStorage.getItem('aegis-language') && config.installerLanguage) {
+            const lang = config.installerLanguage as 'ar' | 'en';
+            changeLanguage(lang);
+            useSettingsStore.getState().setLanguage(lang);
+          }
+          gateway.connect(wsUrl, token);
+        } else {
+          gateway.connect(userUrl || DEFAULT_URL, userToken || '');
+        }
+      } catch {
+        gateway.connect(userUrl || DEFAULT_URL, userToken || '');
+      }
+    })();
 
     // Listen for model changes → refresh session metadata (maxTokens, contextTokens)
     const handleModelChanged = () => loadTokenUsage();
@@ -236,44 +268,8 @@ export default function App() {
       window.removeEventListener('aegis:model-changed', handleModelChanged);
       gateway.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps — intentional run-once effect
   }, []);
-
-  const initConnection = async () => {
-    const DEFAULT_URL = 'ws://127.0.0.1:18789';
-
-    // Priority: Settings Store (user override) → Electron config → fallback
-    // Settings fields are empty by default — only override when user explicitly fills them
-    const settings = useSettingsStore.getState();
-    const userUrl = settings.gatewayUrl?.trim() || '';
-    const userToken = settings.gatewayToken?.trim() || '';
-
-    try {
-      if (window.aegis?.config) {
-        const config = await window.aegis.config.get();
-        const configUrl = config.gatewayUrl || config.gatewayWsUrl || DEFAULT_URL;
-        const configToken = config.gatewayToken || '';
-
-        // User settings override ONLY if non-empty (otherwise use config as before)
-        const wsUrl = userUrl || configUrl;
-        const token = userToken || configToken;
-
-        // Store HTTP URL for pairing flow + media resolution
-        const httpUrl = wsUrl.replace(/^ws:/, 'http:').replace(/^wss:/, 'https:');
-        setGatewayHttpUrl(httpUrl);
-        localStorage.setItem('aegis-gateway-http', httpUrl);
-        if (!localStorage.getItem('aegis-language') && config.installerLanguage) {
-          const lang = config.installerLanguage as 'ar' | 'en';
-          changeLanguage(lang);
-          useSettingsStore.getState().setLanguage(lang);
-        }
-        gateway.connect(wsUrl, token);
-      } else {
-        gateway.connect(userUrl || DEFAULT_URL, userToken || '');
-      }
-    } catch {
-      gateway.connect(userUrl || DEFAULT_URL, userToken || '');
-    }
-  };
 
   // ── Pairing Handlers ──
   const handlePairingComplete = useCallback(async (token: string) => {
@@ -336,7 +332,10 @@ export default function App() {
               <Route path="/sandbox" element={<CodeInterpreterPage />} />
               <Route path="/tools" element={<McpToolsPage />} />
               <Route path="/settings" element={<SettingsPageFull />} />
+              <Route path="/pixel-agents" element={<PixelAgentsPage />} />
+              <Route path="/plugins" element={<PluginsPage />} />
             </Route>
+            <Route path="/voice" element={<VoiceLivePage />} />
           </Routes>
       </HashRouter>
     </>

@@ -298,7 +298,7 @@ function createWindow(): void {
         ...details.responseHeaders,
         'Content-Security-Policy': [
           "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https:; " +
           "style-src-elem 'self' 'unsafe-inline' https:; " +
           "img-src 'self' data: blob: https: http:; " +
           "media-src 'self' data: blob: https: http:; " +
@@ -1404,5 +1404,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('Æ AEGIS Desktop v5.5.0 started');
+console.log('Æ AEGIS Desktop v5.5.1 started');
 

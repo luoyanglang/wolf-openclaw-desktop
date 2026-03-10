@@ -83,6 +83,48 @@
   --color-green-900: 15 60 25;
 
   /* ══════════════════════════════════════════
+     Purple — Accent Option
+     ══════════════════════════════════════════ */
+  --color-purple-50:  250 240 255;
+  --color-purple-100: 243 225 255;
+  --color-purple-200: 230 200 255;
+  --color-purple-300: 210 170 252;
+  --color-purple-400: 168 85 247;
+  --color-purple-500: 147 70 230;
+  --color-purple-600: 126 58 210;
+  --color-purple-700: 105 45 185;
+  --color-purple-800: 80 32 145;
+  --color-purple-900: 55 20 100;
+
+  /* ══════════════════════════════════════════
+     Rose — Accent Option
+     ══════════════════════════════════════════ */
+  --color-rose-50:  255 240 245;
+  --color-rose-100: 255 220 232;
+  --color-rose-200: 255 190 210;
+  --color-rose-300: 253 155 185;
+  --color-rose-400: 251 113 133;
+  --color-rose-500: 236 90 113;
+  --color-rose-600: 210 70 95;
+  --color-rose-700: 180 52 78;
+  --color-rose-800: 145 38 62;
+  --color-rose-900: 110 25 48;
+
+  /* ══════════════════════════════════════════
+     Emerald — Accent Option
+     ══════════════════════════════════════════ */
+  --color-emerald-50:  230 252 245;
+  --color-emerald-100: 200 245 228;
+  --color-emerald-200: 160 232 205;
+  --color-emerald-300: 110 218 175;
+  --color-emerald-400: 52 211 153;
+  --color-emerald-500: 40 190 135;
+  --color-emerald-600: 30 165 115;
+  --color-emerald-700: 22 140 95;
+  --color-emerald-800: 16 110 75;
+  --color-emerald-900: 10 80 55;
+
+  /* ══════════════════════════════════════════
      Slate — Backgrounds + Text
      Unified scale: light end = text (dark theme)
                     dark end = backgrounds (dark theme)

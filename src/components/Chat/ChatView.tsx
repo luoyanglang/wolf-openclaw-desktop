@@ -82,13 +82,10 @@ export function ChatView() {
   const activeSessionKey = useChatStore((s) => s.activeSessionKey);
 
   // Actions (stable references)
-  const setMessages = useChatStore((s) => s.setMessages);
-  const setIsLoadingHistory = useChatStore((s) => s.setIsLoadingHistory);
-  const cacheMessagesForSession = useChatStore((s) => s.cacheMessagesForSession);
-  const getCachedMessages = useChatStore((s) => s.getCachedMessages);
   const addMessage = useChatStore((s) => s.addMessage);
   const setHistoryLoader = useChatStore((s) => s.setHistoryLoader);
   const setQuickReplies = useChatStore((s) => s.setQuickReplies);
+  const loadSessionHistory = useChatStore((s) => s.loadSessionHistory);
 
   const toolIntentEnabled = useSettingsStore((s) => s.toolIntentEnabled);
 
@@ -151,50 +148,28 @@ export function ChatView() {
     });
   }, []);
 
-  // ── History loading ──
-  const loadHistory = useCallback(async () => {
-    const cached = getCachedMessages(activeSessionKey);
-    if (cached && cached.length > 0) {
-      setMessages(cached);
-      return;
-    }
-
-    setIsLoadingHistory(true);
-    try {
-      const result = await gateway.getHistory(activeSessionKey, 200);
-      const rawMessages = Array.isArray(result?.messages) ? result.messages : [];
-
-      const messages = rawMessages.map((msg: any) => ({
-        id: msg.id || msg.messageId || `hist-${crypto.randomUUID()}`,
-        role: msg.role || 'unknown',
-        content: msg.content,
-        timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
-        mediaUrl: msg.mediaUrl || undefined,
-        mediaType: msg.mediaType || undefined,
-        attachments: msg.attachments,
-        toolName: msg.toolName || msg.name,
-        toolInput: msg.toolInput || msg.input,
-        toolCallId: msg.toolCallId || msg.tool_call_id,
-        thinkingContent: msg.thinkingContent,
-      }));
-
-      // Progressive load: show last 20 instantly, then full set
-      if (messages.length > 20) {
-        setMessages(messages.slice(-20));
-        requestAnimationFrame(() => {
-          setMessages(messages);
-          cacheMessagesForSession(activeSessionKey, messages);
+  // ── Scroll to bottom helper (after history load or navigation) ──
+  // Virtuoso needs time to measure all virtual items before it can
+  // scroll accurately. We retry at increasing intervals to handle
+  // both small and large chat histories reliably.
+  const scrollToBottomAfterLoad = useCallback(() => {
+    const delays = [50, 200, 500];
+    delays.forEach((ms) => {
+      setTimeout(() => {
+        virtuosoRef.current?.scrollToIndex({
+          index: 'LAST',
+          behavior: 'auto',
+          align: 'end',
         });
-      } else {
-        setMessages(messages);
-        cacheMessagesForSession(activeSessionKey, messages);
-      }
-    } catch (err) {
-      console.error('[ChatView] History load failed:', err);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  }, [connected, activeSessionKey, setMessages, setIsLoadingHistory, getCachedMessages, cacheMessagesForSession]);
+      }, ms);
+    });
+  }, []);
+
+  // ── History loading (delegates to store action, handles scroll) ──
+  const loadHistory = useCallback(async () => {
+    await loadSessionHistory(activeSessionKey);
+    scrollToBottomAfterLoad();
+  }, [activeSessionKey, loadSessionHistory, scrollToBottomAfterLoad]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
@@ -212,6 +187,17 @@ export function ChatView() {
       loadHistory();
     }
   }, [connected, messages.length, loadHistory]);
+
+  // ── Scroll to bottom on mount (when navigating back to chat) ──
+  // If messages are already loaded (navigated away and came back),
+  // Virtuoso re-mounts and initialTopMostItemIndex shows the last
+  // message's TOP. We need to scroll to show the BOTTOM instead.
+  useEffect(() => {
+    if (renderBlocks.length > 0) {
+      scrollToBottomAfterLoad();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps = only on mount
 
   // Register loadHistory in store so MessageInput can trigger it before first send
   useEffect(() => {

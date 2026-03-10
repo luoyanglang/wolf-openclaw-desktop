@@ -98,10 +98,10 @@ class NotificationService {
    */
   private showOSNotification(title: string, body: string): void {
     // Method 1: Electron IPC → Main Process Notification (no permission needed, instant)
-    const hasIPC = !!(window as any).aegis?.notify;
+    const hasIPC = !!window.aegis?.notify;
     if (hasIPC) {
       try {
-        (window as any).aegis.notify(title, body);
+        window.aegis.notify(title, body);
         console.log('[Notify] IPC — sent');
         return;
       } catch (err) {

@@ -70,8 +70,8 @@ function tokenPercent(context?: number, max?: number): number {
 
 /** Colour of the token bar based on fill level */
 function tokenBarColor(pct: number): string {
-  if (pct >= 90) return 'bg-red-500/70';
-  if (pct >= 70) return 'bg-amber-500/70';
+  if (pct >= 90) return 'bg-aegis-danger/70';
+  if (pct >= 70) return 'bg-aegis-warning/70';
   return 'bg-aegis-primary/60';
 }
 
@@ -155,14 +155,14 @@ function SessionCard({ session }: SessionCardProps) {
           className={clsx(
             'shrink-0 flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-[0.5px] border',
             isRunning
-              ? 'bg-emerald-500/[0.08] border-emerald-500/20 text-emerald-400'
+              ? 'bg-aegis-success-surface border-emerald-500/20 text-aegis-success'
               : 'bg-[rgb(var(--aegis-overlay)/0.03)] border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim',
           )}
         >
           <span
             className={clsx(
               'w-[6px] h-[6px] rounded-full',
-              isRunning ? 'bg-emerald-400' : 'bg-[rgb(var(--aegis-overlay)/0.25)]',
+              isRunning ? 'bg-aegis-success' : 'bg-[rgb(var(--aegis-overlay)/0.25)]',
             )}
             style={isRunning ? { animation: 'mc-dot-ping 2s ease-in-out infinite' } : undefined}
           />

@@ -19,22 +19,7 @@ export const fmtCost = (n: number) => `$${n.toFixed(2)}`;
 export const fmtCostShort = (n: number) =>
   n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n.toFixed(2)}`;
 
-export const timeAgo = (ts?: string) => {
-  if (!ts) return '—';
-  const diff = Date.now() - new Date(ts).getTime();
-  if (diff < 60_000)     return 'now';
-  if (diff < 3_600_000)  return `${Math.floor(diff / 60_000)}m`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h`;
-  return `${Math.floor(diff / 86_400_000)}d`;
-};
-
-export const fmtUptime = (ms: number) => {
-  if (ms < 60_000) return '<1m';
-  const h = Math.floor(ms / 3_600_000);
-  const m = Math.floor((ms % 3_600_000) / 60_000);
-  if (h === 0) return `${m}m`;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-};
+export { timeAgo, formatUptime as fmtUptime } from '@/utils/format';
 
 // ═══════════════════════════════════════════════════════════
 // ContextRing — SVG circular progress ring

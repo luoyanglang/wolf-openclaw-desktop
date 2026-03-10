@@ -45,6 +45,26 @@ function sessionLabel(session: Session | undefined, key: string): string {
   return last.length > 30 ? last.slice(0, 28) + '…' : last;
 }
 
+/** Classify session by key pattern */
+function sessionType(key: string): 'main' | 'cron' | 'voice' | 'other' {
+  // agent:X:cron:* → cron
+  if (/:cron:/.test(key)) return 'cron';
+  // agent:X:voice* → voice
+  if (/:voice/.test(key)) return 'voice';
+  // agent:X:main → main
+  if (/:main$/.test(key) || key === 'agent:main:main') return 'main';
+  return 'other';
+}
+
+function isMainSession(key: string): boolean {
+  return sessionType(key) === 'main';
+}
+
+function isCronOrVoice(key: string): boolean {
+  const t = sessionType(key);
+  return t === 'cron' || t === 'voice';
+}
+
 // ═══════════════════════════════════════════════════════════
 // Agent Status Tooltip — hover card on AEGIS identity
 // ═══════════════════════════════════════════════════════════
@@ -210,7 +230,7 @@ function SessionDropdown({ open, onClose, onSelect, openTabs, sessions, activeKe
           lastTimestamp: s.lastTimestamp,
         }));
         // Sessions not already in open tabs
-        setAvailableSessions(list.filter((s) => !openTabs.includes(s.key)));
+        setAvailableSessions(list.filter((s) => !openTabs.includes(s.key) && isMainSession(s.key)));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -236,7 +256,7 @@ function SessionDropdown({ open, onClose, onSelect, openTabs, sessions, activeKe
               <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider px-2 py-1 mb-0.5">
                 {t('chat.openSessions', 'Open Sessions')}
               </div>
-              {openTabs.map((key) => {
+              {openTabs.filter(isMainSession).map((key) => {
                 const session = getSession(key);
                 const isActive = key === activeKey;
                 const isMain = key === MAIN_SESSION;
@@ -383,7 +403,7 @@ export function ChatTabs() {
             label: s.label || s.key || '',
             kind: s.kind,
           }));
-          setNewSessions(list.filter((s) => !openTabs.includes(s.key)));
+          setNewSessions(list.filter((s) => !openTabs.includes(s.key) && isCronOrVoice(s.key)));
         })
         .catch(() => {})
         .finally(() => setLoadingNew(false));
@@ -533,7 +553,7 @@ export function ChatTabs() {
               >
                 <div className="p-2">
                   <div className="text-[9px] text-aegis-text-dim uppercase tracking-wider px-2 py-1 mb-1">
-                    {t('chat.availableSessions', 'Available Sessions')}
+                    {t('chat.cronAndVoice', 'Cron & Voice Sessions')}
                   </div>
                   {loadingNew ? (
                     <div className="text-center py-4 text-[11px] text-aegis-text-dim">
@@ -541,7 +561,7 @@ export function ChatTabs() {
                     </div>
                   ) : newSessions.length === 0 ? (
                     <div className="text-center py-4 text-[11px] text-aegis-text-dim">
-                      {t('chat.noOtherSessions', 'No other sessions')}
+                      {t('chat.noCronSessions', 'No cron or voice sessions')}
                     </div>
                   ) : (
                     newSessions.map((session) => (

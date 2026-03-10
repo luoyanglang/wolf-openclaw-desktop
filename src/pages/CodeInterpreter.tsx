@@ -3,7 +3,7 @@
 // Displays all exec/process/file tool calls as terminal cards
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Terminal,
@@ -61,7 +61,7 @@ function truncateLines(text: string, n: number): string {
 function StatusBadge({ status }: { status: ToolBlock['status'] }) {
   if (status === 'running') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[rgb(var(--aegis-accent)/0.1)] px-2 py-0.5 text-[11px] font-semibold text-aegis-accent">
         <Loader2 className="h-3 w-3 animate-spin" />
         running
       </span>
@@ -69,14 +69,14 @@ function StatusBadge({ status }: { status: ToolBlock['status'] }) {
   }
   if (status === 'done') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-aegis-success-surface px-2 py-0.5 text-[11px] font-semibold text-aegis-success">
         <CheckCircle className="h-3 w-3" />
         done
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-semibold text-red-400">
+    <span className="inline-flex items-center gap-1 rounded-full bg-aegis-danger-surface px-2 py-0.5 text-[11px] font-semibold text-aegis-danger">
       <XCircle className="h-3 w-3" />
       error
     </span>
@@ -105,8 +105,8 @@ function CopyButton({ text }: { text: string }) {
       className={clsx(
         'inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors',
         copied
-          ? 'bg-emerald-500/20 text-emerald-400'
-          : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/70',
+          ? 'bg-aegis-success-surface text-aegis-success'
+          : 'bg-aegis-surface text-aegis-text-muted hover:bg-aegis-elevated hover:text-aegis-text-secondary',
       )}
     >
       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
@@ -130,13 +130,13 @@ function ExecCard({ block }: { block: ToolBlock }) {
   const hasOutput = outputText.trim().length > 0;
 
   return (
-    <div className="rounded-xl border border-white/8 bg-white/3 backdrop-blur-sm overflow-hidden">
+    <div className="rounded-xl border border-aegis-border bg-aegis-surface backdrop-blur-sm overflow-hidden">
       {/* ── Card Header ── */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white/3 border-b border-white/6">
+      <div className="flex items-center gap-3 px-4 py-3 bg-aegis-surface border-b border-aegis-border">
         {/* Toggle expand */}
         <button
           onClick={() => setExpanded((e) => !e)}
-          className="text-white/40 hover:text-white/70 transition-colors shrink-0"
+          className="text-aegis-text-muted hover:text-aegis-text-secondary transition-colors shrink-0"
           title={expanded ? 'Collapse' : 'Expand'}
         >
           {expanded ? (
@@ -148,7 +148,7 @@ function ExecCard({ block }: { block: ToolBlock }) {
 
         {/* Icon + name */}
         <span className="text-base select-none">{getToolIcon(block.toolName)}</span>
-        <span className="font-mono text-sm font-semibold text-white/90">{block.toolName}</span>
+        <span className="font-mono text-sm font-semibold text-aegis-text">{block.toolName}</span>
 
         {/* Status */}
         <StatusBadge status={block.status} />
@@ -157,7 +157,7 @@ function ExecCard({ block }: { block: ToolBlock }) {
 
         {/* Duration */}
         {block.durationMs !== undefined && (
-          <span className="inline-flex items-center gap-1 text-[11px] text-white/40">
+          <span className="inline-flex items-center gap-1 text-[11px] text-aegis-text-muted">
             <Clock className="h-3 w-3" />
             {(block.durationMs / 1000).toFixed(1)}s
           </span>
@@ -167,10 +167,10 @@ function ExecCard({ block }: { block: ToolBlock }) {
       {/* ── Input ── */}
       {hasInput && (
         <div className="px-4 pt-3 pb-2">
-          <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-white/30">
+          <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-aegis-text-dim">
             Input
           </div>
-          <pre className="overflow-x-auto rounded-lg bg-black/30 px-3 py-2 font-mono text-xs leading-relaxed text-emerald-300 whitespace-pre-wrap break-words">
+          <pre className="overflow-x-auto rounded-lg bg-aegis-bg px-3 py-2 font-mono text-xs leading-relaxed text-aegis-success whitespace-pre-wrap break-words">
             {inputText}
           </pre>
         </div>
@@ -180,19 +180,19 @@ function ExecCard({ block }: { block: ToolBlock }) {
       {hasOutput && (
         <div className="px-4 pt-2 pb-3">
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-aegis-text-dim">
               Output
             </span>
             <CopyButton text={outputText} />
           </div>
           <div
             className={clsx(
-              'overflow-y-auto rounded-lg bg-black/30',
+              'overflow-y-auto rounded-lg bg-aegis-bg',
               !expanded && 'max-h-[300px]',
             )}
             style={expanded ? undefined : { maxHeight: '300px' }}
           >
-            <pre className="px-3 py-2 font-mono text-xs leading-relaxed text-white/75 whitespace-pre-wrap break-words">
+            <pre className="px-3 py-2 font-mono text-xs leading-relaxed text-aegis-text-secondary whitespace-pre-wrap break-words">
               {visibleOutput}
             </pre>
           </div>
@@ -201,7 +201,7 @@ function ExecCard({ block }: { block: ToolBlock }) {
           {!expanded && hasMoreOutput && (
             <button
               onClick={() => setExpanded(true)}
-              className="mt-1.5 text-[11px] text-white/35 hover:text-white/60 transition-colors"
+              className="mt-1.5 text-[11px] text-aegis-text-muted hover:text-aegis-text-secondary transition-colors"
             >
               + {outputLines.length - 3} more lines — click to expand
             </button>
@@ -253,12 +253,12 @@ function StatPill({
     <div
       className={clsx(
         'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium',
-        color === 'blue'  && 'bg-blue-500/10 text-blue-400',
-        color === 'red'   && 'bg-red-500/10 text-red-400',
-        color === 'default' && 'bg-white/6 text-white/60',
+        color === 'blue'    && 'bg-[rgb(var(--aegis-accent)/0.1)] text-aegis-accent',
+        color === 'red'     && 'bg-aegis-danger-surface text-aegis-danger',
+        color === 'default' && 'bg-aegis-surface text-aegis-text-secondary',
       )}
     >
-      <span className="text-white/40">{label}</span>
+      <span className="text-aegis-text-muted">{label}</span>
       <span className="font-bold">{value}</span>
     </div>
   );
@@ -270,13 +270,19 @@ export function CodeInterpreterPage() {
   const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState<FilterOption>('All');
 
-  // Data
-  const renderBlocks = useChatStore((s) => s.renderBlocks);
+  // Ensure history is loaded (may not have visited Chat page first)
+  const messages = useChatStore((s) => s.messages);
+  const connected = useChatStore((s) => s.connected);
+  const loadSessionHistory = useChatStore((s) => s.loadSessionHistory);
+  useEffect(() => {
+    if (connected && messages.length === 0) {
+      loadSessionHistory();
+    }
+  }, [connected, messages.length, loadSessionHistory]);
 
-  const toolBlocks = useMemo(
-    () => renderBlocks.filter((b): b is ToolBlock => b.type === 'tool'),
-    [renderBlocks],
-  );
+  // Get tool blocks with toolIntent forced on (always shows tools here)
+  const getToolBlocks = useChatStore((s) => s.getToolBlocks);
+  const toolBlocks = useMemo(() => getToolBlocks(), [messages, getToolBlocks]);
 
   const stats = useMemo(
     () => ({
@@ -306,14 +312,14 @@ export function CodeInterpreterPage() {
         {/* ── Page Header ── */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/15">
-              <Terminal className="h-5 w-5 text-violet-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-aegis-primary-surface">
+              <Terminal className="h-5 w-5 text-aegis-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white/90">
+              <h1 className="text-xl font-bold text-aegis-text">
                 {t('codeInterpreter.title', 'Code Interpreter')}
               </h1>
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-aegis-text-muted">
                 {t('codeInterpreter.subtitle', 'Tool execution sandbox — all exec & file operations')}
               </p>
             </div>
@@ -325,7 +331,7 @@ export function CodeInterpreterPage() {
 
         {/* ── Filter Bar ── */}
         <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="h-3.5 w-3.5 text-white/30 shrink-0" />
+          <Filter className="h-3.5 w-3.5 text-aegis-text-dim shrink-0" />
           {FILTER_OPTIONS.map((opt) => {
             const count =
               opt === 'All'
@@ -341,8 +347,8 @@ export function CodeInterpreterPage() {
                 className={clsx(
                   'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                   activeFilter === opt
-                    ? 'bg-violet-500/20 text-violet-300 ring-1 ring-violet-500/30'
-                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/80',
+                    ? 'bg-aegis-primary-surface text-aegis-primary ring-1 ring-aegis-primary/30'
+                    : 'bg-aegis-surface text-aegis-text-muted hover:bg-aegis-elevated hover:text-aegis-text-secondary',
                 )}
               >
                 <span>{getToolIcon(opt === 'All' ? '' : opt)}</span>
@@ -351,8 +357,8 @@ export function CodeInterpreterPage() {
                   className={clsx(
                     'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
                     activeFilter === opt
-                      ? 'bg-violet-500/30 text-violet-200'
-                      : 'bg-white/8 text-white/40',
+                      ? 'bg-aegis-primary/30 text-aegis-primary/70'
+                      : 'bg-aegis-elevated text-aegis-text-muted',
                   )}
                 >
                   {count}
@@ -384,16 +390,16 @@ function EmptyState({ activeFilter }: { activeFilter: FilterOption }) {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 py-24 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5">
-        <Terminal className="h-8 w-8 text-white/20" />
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-aegis-surface">
+        <Terminal className="h-8 w-8 text-aegis-text-dim" />
       </div>
       <div>
-        <p className="text-base font-semibold text-white/40">
+        <p className="text-base font-semibold text-aegis-text-muted">
           {activeFilter === 'All'
             ? t('codeInterpreter.empty.noExecs', 'No tool executions yet')
             : t('codeInterpreter.empty.noFiltered', `No "${activeFilter}" executions found`)}
         </p>
-        <p className="mt-1 text-xs text-white/25">
+        <p className="mt-1 text-xs text-aegis-text-dim">
           {t(
             'codeInterpreter.empty.hint',
             'Tool calls will appear here as the agent executes commands',

@@ -88,7 +88,7 @@ export function FullAnalyticsPage() {
         <div>
           <h1 className="text-[24px] font-extrabold text-aegis-text tracking-tight flex items-center gap-3">
             <Activity size={22} className="text-aegis-accent" />
-            {t('analytics.title', 'Full Analytics')}
+            {t('analytics.title', 'Costs — Full Analytics')}
           </h1>
           <p className="text-[12px] text-aegis-text-muted mt-1 flex items-center gap-2">
             {connected ? (

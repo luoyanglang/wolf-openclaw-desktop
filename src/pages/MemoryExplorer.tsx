@@ -155,7 +155,7 @@ function MemoryModal({ memory, onSave, onClose }: {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-aegis-bg backdrop-blur-sm"
       onClick={onClose}>
       <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
@@ -585,7 +585,7 @@ function DetailPanel({ memory, onClose, onEdit, onDelete, apiUrl, isLocal }: {
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/30"
+            className="fixed inset-0 z-40 bg-aegis-bg"
             onClick={onClose}
           />
           {/* Panel */}
@@ -621,12 +621,12 @@ function DetailPanel({ memory, onClose, onEdit, onDelete, apiUrl, isLocal }: {
                   </button>
                   {confirmDel ? (
                     <button onClick={() => { onDelete(memory.id); onClose(); }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-400/30 text-[11px] text-red-400 font-semibold">
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aegis-danger-surface border border-red-400/30 text-[11px] text-aegis-danger font-semibold">
                       Confirm Delete
                     </button>
                   ) : (
                     <button onClick={() => setConfirmDel(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] text-[11px] text-aegis-text-muted hover:text-red-400 hover:border-red-400/30 transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgb(var(--aegis-overlay)/0.04)] border border-[rgb(var(--aegis-overlay)/0.08)] text-[11px] text-aegis-text-muted hover:text-aegis-danger hover:border-red-400/30 transition-colors">
                       <Trash2 size={12} /> Delete
                     </button>
                   )}
@@ -734,7 +734,7 @@ export function MemoryExplorerPage() {
     try {
       if (isLocal) {
         if (!memoryLocalPath) { setMemories([]); setLoading(false); return; }
-        const result = await (window as any).aegis?.memory?.readLocal(memoryLocalPath);
+        const result = await window.aegis?.memory?.readLocal(memoryLocalPath);
         if (result?.success && result.files) {
           setMemories(result.files.map(parseLocalFile));
         } else { setMemories([]); }
@@ -756,7 +756,7 @@ export function MemoryExplorerPage() {
     try {
       if (isLocal) {
         if (!memoryLocalPath) { setSearching(false); return; }
-        const result = await (window as any).aegis?.memory?.readLocal(memoryLocalPath);
+        const result = await window.aegis?.memory?.readLocal(memoryLocalPath);
         if (result?.success && result.files) {
           const q = query.toLowerCase();
           setMemories(result.files

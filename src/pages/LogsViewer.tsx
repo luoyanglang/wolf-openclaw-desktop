@@ -79,10 +79,10 @@ function LevelBadge({ level }: { level?: string }) {
   const cls = clsx(
     'inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider select-none shrink-0',
     {
-      'bg-red-500/20 text-red-400':    l === 'error' || l === 'fatal' || l === 'err',
-      'bg-yellow-500/20 text-yellow-400': l === 'warn' || l === 'warning',
-      'bg-blue-500/15 text-blue-400':  l === 'debug' || l === 'trace' || l === 'verbose',
-      'bg-white/8 text-white/40':      l === 'info' || (l !== 'error' && l !== 'fatal' && l !== 'err' && l !== 'warn' && l !== 'warning' && l !== 'debug' && l !== 'trace' && l !== 'verbose'),
+      'bg-aegis-danger-surface text-aegis-danger':   l === 'error' || l === 'fatal' || l === 'err',
+      'bg-aegis-warning-surface text-aegis-warning': l === 'warn' || l === 'warning',
+      'bg-[rgb(var(--aegis-accent)/0.1)] text-aegis-accent': l === 'debug' || l === 'trace' || l === 'verbose',
+      'bg-aegis-elevated text-aegis-text-muted':     l === 'info' || (l !== 'error' && l !== 'fatal' && l !== 'err' && l !== 'warn' && l !== 'warning' && l !== 'debug' && l !== 'trace' && l !== 'verbose'),
     }
   );
   return <span className={cls}>{l.slice(0, 4)}</span>;
@@ -94,15 +94,15 @@ function LogRow({ entry }: { entry: LogEntry & { _id: number } }) {
   const msg = entry.msg || entry.message || JSON.stringify(entry);
 
   return (
-    <div className="flex items-start gap-2 py-0.5 px-3 hover:bg-white/4 rounded transition-colors">
+    <div className="flex items-start gap-2 py-0.5 px-3 hover:bg-aegis-surface rounded transition-colors">
       {/* Timestamp */}
-      <span className="font-mono text-[11px] text-white/30 shrink-0 pt-0.5 tabular-nums">
+      <span className="font-mono text-[11px] text-aegis-text-dim shrink-0 pt-0.5 tabular-nums">
         {formatTimestamp(ts)}
       </span>
       {/* Level */}
       <LevelBadge level={entry.level} />
       {/* Message */}
-      <span className="font-mono text-[12px] text-white/80 break-all whitespace-pre-wrap leading-relaxed">
+      <span className="font-mono text-[12px] text-aegis-text break-all whitespace-pre-wrap leading-relaxed">
         {msg}
       </span>
     </div>
@@ -138,20 +138,20 @@ function SessionDropdown({ sessions, selected, onSelect }: SessionDropdownProps)
         onClick={() => setOpen(o => !o)}
         className={clsx(
           'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
-          'bg-white/8 hover:bg-white/12 border border-white/10 text-white/80',
+          'bg-aegis-elevated hover:bg-aegis-elevated border border-aegis-border-hover text-aegis-text',
         )}
       >
         <span className="max-w-[180px] truncate">{selectedLabel}</span>
-        <ChevronDown size={14} className={clsx('text-white/40 transition-transform', open && 'rotate-180')} />
+        <ChevronDown size={14} className={clsx('text-aegis-text-muted transition-transform', open && 'rotate-180')} />
       </button>
 
       {open && (
         <div className={clsx(
           'absolute top-full mt-1.5 z-50 min-w-[220px] max-h-72 overflow-y-auto',
-          'rounded-xl border border-white/10 bg-[#1a1a2e]/95 backdrop-blur-xl shadow-2xl',
+          'rounded-xl border border-aegis-border-hover bg-[#1a1a2e]/95 backdrop-blur-xl shadow-2xl',
         )}>
           {sessions.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-white/40 italic">No sessions found</div>
+            <div className="px-4 py-3 text-sm text-aegis-text-muted italic">No sessions found</div>
           ) : (
             sessions.map(s => (
               <button
@@ -160,12 +160,12 @@ function SessionDropdown({ sessions, selected, onSelect }: SessionDropdownProps)
                 className={clsx(
                   'w-full flex flex-col items-start px-4 py-2.5 text-sm transition-colors',
                   s.key === selected
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/70 hover:bg-white/6 hover:text-white',
+                    ? 'bg-aegis-elevated text-aegis-text'
+                    : 'text-aegis-text-secondary hover:bg-aegis-surface hover:text-aegis-text',
                 )}
               >
                 <span className="font-medium truncate max-w-full">{s.label}</span>
-                <span className="text-[11px] text-white/30 font-mono truncate max-w-full">{s.key}</span>
+                <span className="text-[11px] text-aegis-text-dim font-mono truncate max-w-full">{s.key}</span>
               </button>
             ))
           )}
@@ -277,11 +277,11 @@ export function LogsViewerPage() {
   return (
     <PageTransition className="flex flex-col h-full">
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/8 shrink-0 flex-wrap">
+      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-aegis-border shrink-0 flex-wrap">
         {/* Title */}
         <div className="flex items-center gap-2 mr-1">
-          <ScrollText size={18} className="text-white/50" />
-          <h1 className="text-base font-semibold text-white/90 tracking-tight">
+          <ScrollText size={18} className="text-aegis-text-muted" />
+          <h1 className="text-base font-semibold text-aegis-text tracking-tight">
             {t('logsViewer.title', 'Logs')}
           </h1>
         </div>
@@ -298,7 +298,7 @@ export function LogsViewerPage() {
 
         {/* Last fetch time */}
         {lastFetch && (
-          <span className="text-[11px] text-white/25 tabular-nums hidden sm:block">
+          <span className="text-[11px] text-aegis-text-dim tabular-nums hidden sm:block">
             {t('logsViewer.fetched', 'Fetched')} {new Date(lastFetch).toLocaleTimeString()}
           </span>
         )}
@@ -310,8 +310,8 @@ export function LogsViewerPage() {
           className={clsx(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border',
             autoRefresh
-              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
-              : 'bg-white/6 border-white/10 text-white/50 hover:bg-white/10 hover:text-white/70',
+              ? 'bg-aegis-success-surface border-emerald-500/30 text-aegis-success hover:bg-aegis-success-surface'
+              : 'bg-aegis-surface border-aegis-border-hover text-aegis-text-muted hover:bg-aegis-elevated hover:text-aegis-text-secondary',
           )}
         >
           {autoRefresh
@@ -325,7 +325,7 @@ export function LogsViewerPage() {
           onClick={handleRefresh}
           disabled={loading}
           title={t('logsViewer.refresh', 'Refresh')}
-          className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/6 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white/70 transition-all disabled:opacity-40"
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-aegis-surface border border-aegis-border-hover text-aegis-text-muted hover:bg-aegis-elevated hover:text-aegis-text-secondary transition-all disabled:opacity-40"
         >
           {loading
             ? <Loader2 size={14} className="animate-spin" />
@@ -341,7 +341,7 @@ export function LogsViewerPage() {
       >
         {/* Loading skeleton */}
         {loading && logs.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-white/30">
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-aegis-text-dim">
             <Loader2 size={24} className="animate-spin" />
             <span className="text-sm">{t('logsViewer.loading', 'Loading logs…')}</span>
           </div>
@@ -350,14 +350,14 @@ export function LogsViewerPage() {
         {/* Error / no data */}
         {!loading && error && (
           <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
-            <ScrollText size={28} className="text-white/20" />
-            <p className="text-sm text-white/50 font-medium">
+            <ScrollText size={28} className="text-aegis-text-dim" />
+            <p className="text-sm text-aegis-text-muted font-medium">
               {t('logsViewer.noLogs', 'No logs available')}
             </p>
-            <p className="text-xs text-white/25 max-w-sm">
+            <p className="text-xs text-aegis-text-dim max-w-sm">
               {t('logsViewer.rpcNote', 'The RPC endpoint sessions.usage.logs may not be supported by your gateway version, or the session has no logs yet.')}
             </p>
-            <p className="text-xs font-mono text-red-400/60 bg-red-500/5 rounded px-3 py-1.5 max-w-sm break-all">
+            <p className="text-xs font-mono text-aegis-danger/60 bg-aegis-danger-surface rounded px-3 py-1.5 max-w-sm break-all">
               {error}
             </p>
           </div>
@@ -366,11 +366,11 @@ export function LogsViewerPage() {
         {/* Empty — no error, just empty array */}
         {!loading && !error && logs.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
-            <ScrollText size={28} className="text-white/20" />
-            <p className="text-sm text-white/40">
+            <ScrollText size={28} className="text-aegis-text-dim" />
+            <p className="text-sm text-aegis-text-muted">
               {t('logsViewer.empty', 'No log entries for this session.')}
             </p>
-            <p className="text-xs text-white/25 max-w-sm">
+            <p className="text-xs text-aegis-text-dim max-w-sm">
               {t('logsViewer.emptyNote', 'The sessions.usage.logs RPC may not be supported by your gateway version, or the session has no recorded logs.')}
             </p>
           </div>
@@ -384,7 +384,7 @@ export function LogsViewerPage() {
             ))}
             {/* Loading spinner at bottom during auto-refresh */}
             {loading && (
-              <div className="flex items-center gap-2 px-3 py-1 text-white/20">
+              <div className="flex items-center gap-2 px-3 py-1 text-aegis-text-dim">
                 <Loader2 size={12} className="animate-spin" />
                 <span className="text-[11px] font-mono">{t('logsViewer.refreshing', 'Refreshing…')}</span>
               </div>
@@ -394,16 +394,16 @@ export function LogsViewerPage() {
       </div>
 
       {/* ── Status bar ── */}
-      <div className="shrink-0 flex items-center gap-3 px-5 py-1.5 border-t border-white/6 text-[11px] text-white/25 font-mono">
+      <div className="shrink-0 flex items-center gap-3 px-5 py-1.5 border-t border-aegis-border text-[11px] text-aegis-text-dim font-mono">
         <span>{logs.length} {t('logsViewer.entries', 'entries')}</span>
         {autoRefresh && (
           <>
-            <span className="w-px h-3 bg-white/10" />
-            <span className="text-emerald-400/60">{t('logsViewer.autoRefreshActive', 'auto-refresh 5s')}</span>
+            <span className="w-px h-3 bg-aegis-border" />
+            <span className="text-aegis-success/60">{t('logsViewer.autoRefreshActive', 'auto-refresh 5s')}</span>
           </>
         )}
         <span className="flex-1" />
-        <span className="truncate max-w-[260px] text-white/15">{selectedKey}</span>
+        <span className="truncate max-w-[260px] text-aegis-text-dim/60">{selectedKey}</span>
       </div>
     </PageTransition>
   );

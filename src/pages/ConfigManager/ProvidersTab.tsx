@@ -87,26 +87,6 @@ function getModelsForProvider(
   );
 }
 
-/** @deprecated use getModelsForProvider — kept for ProfileRow backward compat */
-function modelsForProvider(
-  profileKey: string,
-  models: Record<string, ModelEntry> | undefined
-): Record<string, ModelEntry> {
-  if (!models) return {};
-  const provider = providerFromProfileKey(profileKey);
-  return Object.fromEntries(
-    Object.entries(models).filter(([id]) => {
-      const tmpl = getTemplateById(provider);
-      if (!tmpl) return getProviderFromModelId(id) === provider;
-      return (
-        tmpl.popularModels.some((m) => m.id === id) ||
-        id.startsWith(provider + '/') ||
-        id.startsWith(provider + ':')
-      );
-    })
-  );
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // buildUnifiedProviders — merge 3 sources
 // ─────────────────────────────────────────────────────────────────────────────
@@ -238,7 +218,7 @@ function ProfileRow({ profileKey, profile, allModels, primaryModel, onChange }: 
   const [open, setOpen] = useState(false);
   const providerId    = providerFromProfileKey(profileKey);
   const tmpl          = getTemplateById(providerId);
-  const providerModels = modelsForProvider(profileKey, allModels);
+  const providerModels = allModels ? getModelsForProvider(providerId, allModels) : {};
   const modelCount    = Object.keys(providerModels).length;
 
   // ── Inline edit state ──

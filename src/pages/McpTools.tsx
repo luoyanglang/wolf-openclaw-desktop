@@ -4,7 +4,7 @@
 // MCP integration placeholder for future external tools.
 // ═══════════════════════════════════════════════════════════
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Wrench, Plug, Clock, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { PageTransition } from '@/components/shared/PageTransition';
@@ -47,6 +47,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Communication: 'bg-yellow-500/10 text-yellow-400',
   Devices:       'bg-teal-500/10 text-teal-400',
   UI:            'bg-rose-500/10 text-rose-400',
+  Other:         'bg-slate-500/10 text-slate-400',
 };
 
 // ─── ToolCard ───────────────────────────────────────────────
@@ -111,14 +112,14 @@ function ToolCard({ name, icon, desc, category, count, errors, totalMs, dimmed }
           <div className="flex flex-col items-center gap-0.5">
             <div className="flex items-center gap-1 text-aegis-text-muted">
               {(errors ?? 0) > 0
-                ? <XCircle size={11} className="text-red-400" />
-                : <CheckCircle size={11} className="text-green-400" />}
+                ? <XCircle size={11} className="text-aegis-danger" />
+                : <CheckCircle size={11} className="text-aegis-success" />}
               <span className="text-[10px]">Success</span>
             </div>
             <span className={clsx(
               'text-[13px] font-bold',
-              successRate === 100 ? 'text-green-400' :
-              (successRate ?? 100) >= 80 ? 'text-yellow-400' : 'text-red-400',
+              successRate === 100 ? 'text-aegis-success' :
+              (successRate ?? 100) >= 80 ? 'text-aegis-warning' : 'text-aegis-danger',
             )}>
               {successRate ?? 100}%
             </span>
@@ -162,13 +163,20 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
 
 export function McpToolsPage() {
   const { t } = useTranslation();
-  const renderBlocks = useChatStore((s) => s.renderBlocks);
 
-  // ── Collect tool blocks from current session ────────────
-  const toolBlocks = useMemo(
-    () => renderBlocks.filter((b): b is ToolBlock => b.type === 'tool'),
-    [renderBlocks],
-  );
+  // Ensure history is loaded (may not have visited Chat page first)
+  const messages = useChatStore((s) => s.messages);
+  const connected = useChatStore((s) => s.connected);
+  const loadSessionHistory = useChatStore((s) => s.loadSessionHistory);
+  useEffect(() => {
+    if (connected && messages.length === 0) {
+      loadSessionHistory();
+    }
+  }, [connected, messages.length, loadSessionHistory]);
+
+  // Get tool blocks with toolIntent forced on (always shows tools here)
+  const getToolBlocks = useChatStore((s) => s.getToolBlocks);
+  const toolBlocks = useMemo(() => getToolBlocks(), [messages, getToolBlocks]);
 
   // ── Aggregate per-tool stats ────────────────────────────
   const toolStats = useMemo(() => {
@@ -182,19 +190,34 @@ export function McpToolsPage() {
     return stats;
   }, [toolBlocks]);
 
-  // ── Active tools (appeared in session) ─────────────────
+  // ── Known tool names for quick lookup ────────────────────
+  const knownNames = useMemo(() => new Set(KNOWN_TOOLS.map((t) => t.name)), []);
+
+  // ── Active known tools (appeared in session + in catalog) ──
   const activeTools = useMemo(() => {
     const activeNames = new Set(Object.keys(toolStats));
     return KNOWN_TOOLS.filter((tool) => activeNames.has(tool.name));
   }, [toolStats]);
 
-  // ── Available tools (never used in this session) ────────
+  // ── Unknown active tools (appeared in session but NOT in catalog) ──
+  const unknownActiveTools = useMemo(() => {
+    return Object.keys(toolStats)
+      .filter((name) => !knownNames.has(name))
+      .map((name) => ({
+        name,
+        icon: '🔧',
+        desc: 'Discovered tool (not in catalog)',
+        category: 'Other',
+      }));
+  }, [toolStats, knownNames]);
+
+  // ── Available tools (in catalog, never used in this session) ──
   const availableTools = useMemo(() => {
     const activeNames = new Set(Object.keys(toolStats));
     return KNOWN_TOOLS.filter((tool) => !activeNames.has(tool.name));
   }, [toolStats]);
 
-  const totalToolCount = KNOWN_TOOLS.length;
+  const totalToolCount = KNOWN_TOOLS.length + unknownActiveTools.length;
 
   return (
     <PageTransition className="h-full overflow-y-auto">
@@ -239,8 +262,32 @@ export function McpToolsPage() {
           </section>
         )}
 
+        {/* ── Unknown Active Tools (not in catalog) ────────── */}
+        {unknownActiveTools.length > 0 && (
+          <section className="mb-8">
+            <SectionHeader
+              title={t('mcpTools.otherActiveTools', 'Other Active Tools')}
+              count={unknownActiveTools.length}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {unknownActiveTools.map((tool) => {
+                const s = toolStats[tool.name];
+                return (
+                  <ToolCard
+                    key={tool.name}
+                    {...tool}
+                    count={s?.count}
+                    errors={s?.errors}
+                    totalMs={s?.totalMs}
+                  />
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* ── Empty state when no tools used yet ─────────── */}
-        {activeTools.length === 0 && (
+        {activeTools.length === 0 && unknownActiveTools.length === 0 && (
           <div className="mb-8 p-6 rounded-xl border border-dashed border-aegis-border text-center">
             <Zap size={28} className="mx-auto mb-2 text-aegis-text-dim opacity-50" />
             <p className="text-[13px] text-aegis-text-muted">

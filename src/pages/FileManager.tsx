@@ -60,10 +60,10 @@ function formatDate(iso: string): string {
 
 function getFileIcon(ext: string) {
   const size = 14;
-  if (['json', 'jsonc'].includes(ext)) return <FileJson size={size} className="text-yellow-400/80" />;
+  if (['json', 'jsonc'].includes(ext)) return <FileJson size={size} className="text-aegis-warning" />;
   if (['ts', 'tsx', 'js', 'jsx', 'py', 'sh', 'bash'].includes(ext))
-    return <FileCode size={size} className="text-blue-400/80" />;
-  if (['md', 'txt', 'log'].includes(ext)) return <FileText size={size} className="text-green-400/80" />;
+    return <FileCode size={size} className="text-aegis-accent" />;
+  if (['md', 'txt', 'log'].includes(ext)) return <FileText size={size} className="text-aegis-success" />;
   return <File size={size} className="text-aegis-text-dim" />;
 }
 
@@ -161,8 +161,8 @@ function NoBridgeState() {
   const { t } = useTranslation();
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
-      <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 border border-yellow-400/20 flex items-center justify-center">
-        <AlertCircle size={24} className="text-yellow-400" />
+      <div className="w-14 h-14 rounded-2xl bg-aegis-warning-surface border border-yellow-400/20 flex items-center justify-center">
+        <AlertCircle size={24} className="text-aegis-warning" />
       </div>
       <div>
         <div className="text-[14px] font-bold text-aegis-text mb-1">
@@ -382,7 +382,7 @@ export function FileManagerPage() {
 
       {/* ══ Error bar ══ */}
       {error && (
-        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-500/8 border-b border-red-400/15 text-[11px] text-red-400">
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-aegis-danger-surface border-b border-red-400/15 text-[11px] text-aegis-danger">
           <AlertCircle size={13} />
           {error}
         </div>

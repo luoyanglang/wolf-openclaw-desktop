@@ -6,6 +6,28 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [5.6.0] — 2026-03-10
+
+### Added
+- **Voice Chat** — real-time voice conversations powered by Gemini Live API as a speech relay. Gemini handles STT/TTS via `ask_aegis` function calling, Gateway handles the intelligence. AudioWorklet mic capture (PCM16 @ 16kHz) with gapless playback (PCM @ 24kHz). Silero VAD filters background noise. Aura visualizer with four animated states (idle, listening, thinking, speaking). Dedicated settings panel for API key, response model, voice selection. Isolated voice sessions separate from text chat.
+- **Plugin System** — modular page with 8 built-in plugins (Pixel Agents, Session Manager, Logs Viewer, Multi-Agent, File Manager, Code Interpreter, MCP Tools, Analytics). Responsive grid layout, inline rendering without route navigation, persistent state via localStorage. Replaced Pixel Agents sidebar entry with Plugins (🧩).
+- **Office Visualization** — virtual office page showing agents as characters working at desks in real-time (closes [#8](https://github.com/rshodoskar-star/openclaw-desktop/issues/8))
+- **Code Interpreter & MCP Tools — shared history loading** — extracted `loadSessionHistory` from ChatView into chatStore as a shared action. Both pages now auto-load history on open (no need to visit Chat first). Added `getToolBlocks()` that forces tool parsing regardless of `toolIntentEnabled` setting.
+- **MCP Tools — Unknown Tools section** — tools that appear in the session but aren't in the known catalog now show under "Other Active Tools" instead of being hidden
+- **Cron Monitor — Delete Job** — delete button with confirmation dialog and Gateway API integration
+
+### Fixed
+- **Cron Monitor title** — changed from "Mission Control" to "Cron Monitor"
+- **Dashboard title** — changed from "Mission Control" to "Dashboard"
+- **Settings footer** — changed from "Mission Control" to "AEGIS Desktop"
+- **Cron Monitor sort order** — latest successful run now appears at the bottom
+- **Voice Chat header overlap** — back button no longer overlaps page title in both LTR and RTL layouts
+- **Chat messages lost after tool calls** — post-tool-call text now appears in real-time
+- **Accent Color palette** — purple, rose, and emerald colors now apply correctly
+- **Chat scroll position** — conversation scrolls to bottom on app open
+
+---
+
 ## [5.3.1] — 2026-02-23
 
 ### Fixed

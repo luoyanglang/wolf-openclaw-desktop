@@ -126,7 +126,7 @@ function AgentCard({
       <span
         className={clsx(
           'w-2 h-2 rounded-full shrink-0',
-          isRunning ? 'bg-emerald-400' : 'bg-[rgb(var(--aegis-overlay)/0.2)]',
+          isRunning ? 'bg-aegis-success' : 'bg-[rgb(var(--aegis-overlay)/0.2)]',
         )}
         style={
           isRunning
@@ -290,9 +290,9 @@ export function MultiAgentViewPage() {
         {/* Active count badge */}
         {runningSessions.length > 0 && (
           <span className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md
-            bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 uppercase tracking-[0.5px]">
+            bg-aegis-success-surface border border-emerald-400/20 text-aegis-success uppercase tracking-[0.5px]">
             <span
-              className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+              className="w-1.5 h-1.5 rounded-full bg-aegis-success"
               style={{ animation: 'pulse 2s ease-in-out infinite' }}
             />
             {runningSessions.length} {t('multiAgent.active', 'Active')}
@@ -405,7 +405,7 @@ export function MultiAgentViewPage() {
                     <div
                       className={clsx(
                         'w-2 h-2 rounded-full',
-                        isSelectedRunning ? 'bg-emerald-400' : 'bg-[rgb(var(--aegis-overlay)/0.2)]',
+                        isSelectedRunning ? 'bg-aegis-success' : 'bg-[rgb(var(--aegis-overlay)/0.2)]',
                       )}
                       style={
                         isSelectedRunning
@@ -420,7 +420,7 @@ export function MultiAgentViewPage() {
                       className={clsx(
                         'text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-[0.5px] border',
                         isSelectedRunning
-                          ? 'bg-emerald-400/10 border-emerald-400/20 text-emerald-400'
+                          ? 'bg-aegis-success-surface border-emerald-400/20 text-aegis-success'
                           : 'bg-[rgb(var(--aegis-overlay)/0.04)] border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim',
                       )}
                     >
@@ -456,9 +456,9 @@ export function MultiAgentViewPage() {
                           className={clsx(
                             'text-[9px] font-bold',
                             tokenPct >= 90
-                              ? 'text-red-400'
+                              ? 'text-aegis-danger'
                               : tokenPct >= 70
-                              ? 'text-amber-400'
+                              ? 'text-aegis-warning'
                               : 'text-aegis-text-dim',
                           )}
                         >

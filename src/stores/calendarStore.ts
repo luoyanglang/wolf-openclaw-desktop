@@ -89,7 +89,7 @@ function buildCronExpr(event: CalendarEvent): string {
   let remM = minutes - event.reminderMinutes;
   let remH = hours;
   while (remM < 0) { remM += 60; remH--; }
-  if (remH < 0) remH += 24;
+  while (remH < 0) remH += 24;
 
   const { freq, interval } = event.recurrence;
 

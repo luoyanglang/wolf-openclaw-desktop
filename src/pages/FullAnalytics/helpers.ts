@@ -111,7 +111,7 @@ export async function copyAnalyticsText({
   byModel,
 }: CopyTextParams): Promise<void> {
   const lines = [
-    `📊 Full Analytics Report — ${new Date().toLocaleDateString()}`,
+    `📊 Costs — Full Analytics Report — ${new Date().toLocaleDateString()}`,
     `Period: ${periodInfo.start} → ${periodInfo.end} (${periodInfo.days} days)`,
     '',
     `Total Cost:     ${formatUsd(totals.totalCost)}`,

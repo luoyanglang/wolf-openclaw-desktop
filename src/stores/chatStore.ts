@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import type { RenderBlock } from '@/types/RenderBlock';
+import type { RenderBlock, ToolBlock } from '@/types/RenderBlock';
 import { parseHistory, parseHistoryMessage } from '@/processing/ContentParser';
 import { useSettingsStore } from './settingsStore';
+import { gateway } from '@/services/gateway';
 
 // ═══════════════════════════════════════════════════════════
 // Chat Store — Message, Session, Tabs & Usage State
@@ -113,6 +114,12 @@ interface ChatState {
   // Called by MessageInput before first send — loads history if not yet loaded
   historyLoader: (() => Promise<void>) | null;
   setHistoryLoader: (fn: (() => Promise<void>) | null) => void;
+
+  // History loading (shared — usable from any page, not just ChatView)
+  loadSessionHistory: (sessionKey?: string) => Promise<void>;
+
+  // Tool blocks with toolIntent forced on (for CodeInterpreter / McpTools pages)
+  getToolBlocks: () => ToolBlock[];
 
   // Quick Replies (from [[button:...]] markers)
   quickReplies: Array<{ text: string; value: string }>;
@@ -443,6 +450,84 @@ export const useChatStore = create<ChatState>((set, get) => ({
   drafts: {},
   setDraft: (key, text) => set((state) => ({ drafts: { ...state.drafts, [key]: text } })),
   getDraft: (key) => get().drafts[key] || '',
+
+  // ── History Loading (shared across pages) ──
+  loadSessionHistory: async (sessionKey?: string) => {
+    const state = get();
+    const key = sessionKey || state.activeSessionKey;
+
+    // Use cache if available
+    const cached = state.messagesPerSession[key];
+    if (cached && cached.length > 0) {
+      if (key === state.activeSessionKey && state.messages.length === 0) {
+        set({
+          messages: cached,
+          renderBlocks: state._blocksCache[key] || recomputeBlocks(cached),
+        });
+      }
+      return;
+    }
+
+    set({ isLoadingHistory: true });
+    try {
+      const result = await gateway.getHistory(key, 200);
+      const rawMessages = Array.isArray(result?.messages) ? result.messages : [];
+
+      const messages: ChatMessage[] = rawMessages.map((msg: any) => ({
+        id: msg.id || msg.messageId || `hist-${crypto.randomUUID()}`,
+        role: msg.role || 'unknown',
+        content: msg.content,
+        timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
+        mediaUrl: msg.mediaUrl || undefined,
+        mediaType: msg.mediaType || undefined,
+        attachments: msg.attachments,
+        toolName: msg.toolName || msg.name,
+        toolInput: msg.toolInput || msg.input,
+        toolCallId: msg.toolCallId || msg.tool_call_id,
+        thinkingContent: msg.thinkingContent,
+      }));
+
+      // Update store: set messages for active session, cache for any session
+      const blocks = recomputeBlocks(messages);
+      const update: Partial<ChatState> = {
+        messagesPerSession: { ...get().messagesPerSession, [key]: messages },
+        _blocksCache: { ...get()._blocksCache, [key]: blocks },
+      };
+      if (key === get().activeSessionKey) {
+        update.messages = messages;
+        update.renderBlocks = blocks;
+      }
+      set(update as any);
+    } catch (err) {
+      console.error('[chatStore] loadSessionHistory failed:', err);
+    } finally {
+      set({ isLoadingHistory: false });
+    }
+  },
+
+  // ── Tool Blocks (always includes tools, ignores toolIntentEnabled) ──
+  getToolBlocks: (): ToolBlock[] => {
+    const state = get();
+    const raw = state.messages.map(msg => ({
+      id: msg.id,
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      toolName: msg.toolName,
+      toolInput: msg.toolInput,
+      toolOutput: msg.toolOutput,
+      toolStatus: msg.toolStatus,
+      toolDurationMs: msg.toolDurationMs,
+      thinkingContent: msg.thinkingContent,
+      mediaUrl: msg.mediaUrl,
+      mediaType: msg.mediaType,
+      attachments: msg.attachments,
+      isStreaming: msg.isStreaming,
+    }));
+    // Force toolIntentEnabled = true so tool blocks are always parsed
+    const allBlocks = parseHistory(raw, true);
+    return allBlocks.filter((b): b is ToolBlock => b.type === 'tool');
+  },
 
   // ── Quick Replies ──
   quickReplies: [],

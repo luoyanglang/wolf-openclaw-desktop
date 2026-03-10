@@ -14,7 +14,7 @@ import en from './locales/en.json';
 //   4. Fallback: 'en'
 const getInitialLang = (): string => {
   const stored = localStorage.getItem('aegis-language');
-  const installerLang = (window as any).aegis?.installerLanguage as string | null;
+  const installerLang = window.aegis?.installerLanguage ?? null;
   const currentVersion = (window as any).__APP_VERSION__ || '';
   const lastVersion = localStorage.getItem('aegis-installed-version');
 

@@ -27,7 +27,8 @@
     "settings": "Settings",
     "terminal": "Terminal",
     "notifications": "Notifications",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "voiceLive": "Voice Chat"
   },
   "skills": {
     "title": "Skills",
@@ -42,7 +43,7 @@
     "noResults": "No skills found"
   },
   "dashboard": {
-    "title": "Mission Control",
+    "title": "Dashboard",
     "subtitle": "Command center — Everything in one place",
     "working": "Working",
     "idle": "Idle",
@@ -259,6 +260,8 @@
     "availableSessions": "Available Sessions",
     "newTab": "New Tab",
     "noOtherSessions": "No other sessions",
+    "cronAndVoice": "Cron & Voice Sessions",
+    "noCronSessions": "No cron or voice sessions",
     "stopped": "Stopped"
   },
   "titlebar": {
@@ -770,7 +773,11 @@
   "calendar": {
     "title": "Calendar",
     "today": "Today",
-    "views": { "month": "Month", "week": "Week", "day": "Day" },
+    "views": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day"
+    },
     "addEvent": "Add Event",
     "editEvent": "Edit Event",
     "newEvent": "New Event",
@@ -865,5 +872,48 @@
       "defaultReminder": "Default reminder",
       "defaultView": "Default view"
     }
+  },
+  "voiceLive": {
+    "title": "Voice Chat",
+    "idle": "Ready",
+    "listening": "Listening...",
+    "thinking": "Thinking...",
+    "speaking": "Speaking...",
+    "startMic": "Click to start",
+    "stopMic": "Click to mute",
+    "close": "Close",
+    "newChat": "New chat",
+    "newChatConfirm": "Start a new voice session?",
+    "timer": "Duration",
+    "session": "Session",
+    "settings": "Voice Settings",
+    "apiKey": "Gemini API Key",
+    "apiKeyPlaceholder": "Enter your Gemini API key",
+    "responseModel": "Response Model",
+    "responseModelHint": "The model that thinks and answers your questions",
+    "geminiVoice": "Gemini Voice",
+    "testVoice": "Test",
+    "liveModel": "Live Model (STT/TTS)",
+    "liveModelHint": "Voice relay model — handles speech recognition and synthesis",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noModels": "No models available",
+    "connecting": "Connecting...",
+    "disconnected": "Disconnected",
+    "micPermissionDenied": "Microphone permission denied",
+    "connectionError": "Connection failed. Check your API key.",
+    "sessionReset": "Session reset",
+    "noApiKey": "Set your Gemini API key in settings",
+    "saved": "Settings saved",
+    "language": "Language",
+    "languageHint": "Language for voice interaction",
+    "backToChat": "Back to Chat",
+    "tapToStart": "Tap mic to start",
+    "hintStart": "Tap to connect",
+    "hintInterrupt": "Tap mic to interrupt",
+    "hintWait": "Processing...",
+    "hintListening": "Speak...",
+    "hintUnmute": "Tap to unmute",
+    "interrupt": "Tap to interrupt"
   }
 }

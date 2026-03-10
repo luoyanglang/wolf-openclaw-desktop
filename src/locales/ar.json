@@ -27,7 +27,8 @@
     "settings": "الإعدادات",
     "terminal": "الطرفية",
     "notifications": "الإشعارات",
-    "calendar": "التقويم"
+    "calendar": "التقويم",
+    "voiceLive": "محادثة صوتية"
   },
   "skills": {
     "title": "المهارات",
@@ -42,7 +43,7 @@
     "noResults": "لم يتم العثور على مهارات"
   },
   "dashboard": {
-    "title": "Mission Control",
+    "title": "لوحة التحكم",
     "subtitle": "مركز التحكم — كل شي في مكان واحد",
     "working": "يعمل",
     "idle": "جاهز",
@@ -227,7 +228,9 @@
     "copy": "نسخ",
     "copied": "تم النسخ!",
     "resend": "إعادة إرسال",
-    "stopped": "تم الإيقاف"
+    "stopped": "تم الإيقاف",
+    "cronAndVoice": "جلسات Cron والصوت",
+    "noCronSessions": "لا توجد جلسات cron أو صوت"
   },
   "titlebar": {
     "minimize": "تصغير",
@@ -738,7 +741,11 @@
   "calendar": {
     "title": "التقويم",
     "today": "اليوم",
-    "views": { "month": "شهر", "week": "أسبوع", "day": "يوم" },
+    "views": {
+      "month": "شهر",
+      "week": "أسبوع",
+      "day": "يوم"
+    },
     "addEvent": "إضافة موعد",
     "editEvent": "تعديل الموعد",
     "newEvent": "موعد جديد",
@@ -833,5 +840,48 @@
       "defaultReminder": "التذكير الافتراضي",
       "defaultView": "العرض الافتراضي"
     }
+  },
+  "voiceLive": {
+    "title": "محادثة صوتية",
+    "idle": "جاهز",
+    "listening": "يسمع...",
+    "thinking": "يفكر...",
+    "speaking": "يتكلم...",
+    "startMic": "اضغط للتحدث",
+    "stopMic": "اضغط للكتم",
+    "close": "إغلاق",
+    "newChat": "محادثة جديدة",
+    "newChatConfirm": "تبدأ محادثة صوتية جديدة؟",
+    "timer": "المدة",
+    "session": "الجلسة",
+    "settings": "إعدادات الصوت",
+    "apiKey": "مفتاح Gemini API",
+    "apiKeyPlaceholder": "أدخل مفتاح Gemini API",
+    "responseModel": "موديل الإجابات",
+    "responseModelHint": "الموديل اللي يفكر ويرد على أسئلتك",
+    "geminiVoice": "صوت Gemini",
+    "testVoice": "تجربة",
+    "liveModel": "موديل البث (STT/TTS)",
+    "liveModelHint": "موديل الصوت — التعرف والنطق",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "noModels": "لا توجد موديلات",
+    "connecting": "جاري الاتصال...",
+    "disconnected": "غير متصل",
+    "micPermissionDenied": "تم رفض إذن الميكروفون",
+    "connectionError": "فشل الاتصال. تحقق من مفتاح API.",
+    "sessionReset": "تم إعادة تعيين الجلسة",
+    "noApiKey": "حدد مفتاح Gemini API في الإعدادات",
+    "saved": "تم الحفظ",
+    "language": "اللغة",
+    "languageHint": "لغة المحادثة الصوتية",
+    "backToChat": "العودة للشات",
+    "tapToStart": "اضغط المايك للبدء",
+    "hintStart": "اضغط للاتصال",
+    "hintInterrupt": "اضغط المايك للمقاطعة",
+    "hintWait": "يعالج طلبك...",
+    "hintListening": "تكلّم...",
+    "hintUnmute": "اضغط لفتح المايك",
+    "interrupt": "اضغط للمقاطعة"
   }
 }

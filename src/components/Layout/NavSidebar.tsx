@@ -8,8 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, MessageCircle, Kanban, DollarSign,
-  Clock, Bot, Settings, Settings2, Brain, Puzzle,
-  Terminal, Users, ScrollText, Radio, FolderOpen, Code2, Wrench, CalendarDays,
+  Clock, Bot, Settings, Settings2, Blocks,
+  Terminal, CalendarDays, Mic,
 } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getDirection } from '@/i18n';
@@ -29,10 +29,10 @@ const navItems: NavItem[] = [
   { to: '/cron', icon: Clock, labelKey: 'nav.cron' },
   { to: '/agents', icon: Bot, labelKey: 'nav.agents' },
   { to: '/costs', icon: DollarSign, labelKey: 'nav.costs' },
-  { to: '/skills', icon: Puzzle, labelKey: 'nav.skills' },
   { to: '/terminal', icon: Terminal, labelKey: 'nav.terminal' },
-  { to: '/memory', icon: Brain, labelKey: 'nav.memory', badge: '🧪' },
   { to: '/calendar', icon: CalendarDays, labelKey: 'nav.calendar' },
+  { to: '/voice', icon: Mic, labelKey: 'nav.voiceLive' },
+  { to: '/plugins', icon: Blocks, labelKey: 'nav.plugins' },
   { to: '/config', icon: Settings2, labelKey: 'nav.config' },
 ];
 

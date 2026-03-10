@@ -1,13 +1,14 @@
 // ═══════════════════════════════════════════════════════════
-// Mission Control — 3-Column Command Center
+// Cron Monitor — 3-Column Command Center
 // Top: Command bar | Col 1: Gantt job rows | Col 2: 24h clock | Col 3: Detail + Activity
 // ═══════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, RotateCcw, Loader2, Check, X, Plus, Search } from 'lucide-react';
+import { Play, RotateCcw, Loader2, Check, X, Plus, Search, Trash2 } from 'lucide-react';
 import { gateway } from '@/services/gateway';
 import { useChatStore } from '@/stores/chatStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useGatewayDataStore, refreshGroup } from '@/stores/gatewayDataStore';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -368,6 +369,7 @@ function ClockFace({ jobs, colorMap, selectedId, onSelect }: {
 export function CronMonitorPage() {
   const { t } = useTranslation();
   const { connected } = useChatStore();
+  const { theme } = useSettingsStore();
   // lang removed — templates now use i18n keys directly
 
   // ── State (jobs from central store) ──
@@ -384,6 +386,7 @@ export function CronMonitorPage() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllLogs, setShowAllLogs] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null); // jobId to confirm delete
 
   // Fix #1: Stable ref for jobs — avoids useCallback rebuilding every 30s
   const jobsRef = useRef<CronJob[]>([]);
@@ -399,7 +402,7 @@ export function CronMonitorPage() {
     return () => clearInterval(iv);
   }, []);
 
-  // Fix #11: Cache theme hex values (re-computed on mount only)
+  // Cache theme hex values — re-computed when theme changes
   const tc = useMemo(() => ({
     primary: themeHex('primary'),
     accent: themeHex('accent'),
@@ -410,7 +413,7 @@ export function CronMonitorPage() {
     dangerA40: themeAlpha('danger', 0.4),
     dangerA25: themeAlpha('danger', 0.25),
     primaryA50: themeAlpha('primary', 0.5),
-  }), []); // eslint-disable-line
+  }), [theme]);
 
   // ── Derived ──
   const colorMap = useMemo(() => {
@@ -472,8 +475,8 @@ export function CronMonitorPage() {
         }));
       }
 
-      all.sort((a, b) => new Date(b.ts || 0).getTime() - new Date(a.ts || 0).getTime());
-      setRecentRuns(all.slice(0, 30));
+      all.sort((a, b) => new Date(a.ts || 0).getTime() - new Date(b.ts || 0).getTime());
+      setRecentRuns(all.slice(-30));
       runsCacheLoaded.current = true;
     } catch { /* silent */ }
     finally { setLoadingRuns(false); }
@@ -494,8 +497,8 @@ export function CronMonitorPage() {
       // Rebuild recent runs from cache
       const all: RunEntry[] = [];
       Object.values(runsCache.current).forEach(arr => all.push(...arr));
-      all.sort((a, b) => new Date(b.ts || 0).getTime() - new Date(a.ts || 0).getTime());
-      setRecentRuns(all.slice(0, 30));
+      all.sort((a, b) => new Date(a.ts || 0).getTime() - new Date(b.ts || 0).getTime());
+      setRecentRuns(all.slice(-30));
     } catch { /* silent */ }
   }, [connected]);
 
@@ -514,7 +517,7 @@ export function CronMonitorPage() {
     // Show cached data immediately (if available)
     const cached = runsCache.current[selectedJobId];
     if (cached?.length) {
-      setSelectedJobRuns([...cached].slice(-14).reverse());
+      setSelectedJobRuns([...cached].slice(-14));
     }
 
     // Then fetch fresh data in background
@@ -523,7 +526,7 @@ export function CronMonitorPage() {
         const result = await gateway.call('cron.runs', { jobId: selectedJobId });
         if (fetchId !== selectedFetchId.current) return; // stale — discard
         const job = jobsRef.current.find(j => j.id === selectedJobId);
-        const entries = (result?.entries || []).slice(-14).reverse().map((e: any) => ({
+        const entries = (result?.entries || []).slice(-14).map((e: any) => ({
           ...e, jobId: selectedJobId, jobName: job?.name || selectedJobId,
         }));
         setSelectedJobRuns(entries);
@@ -556,6 +559,18 @@ export function CronMonitorPage() {
     }
   };
 
+  const deleteJob = async (jobId: string) => {
+    setActionLoading(`del-${jobId}`);
+    try {
+      await gateway.call('cron.remove', { jobId });
+      await refreshGroup('cron');
+      // Clear selection if deleted job was selected
+      if (selectedJobId === jobId) setSelectedJobId(null);
+      setDeleteConfirm(null);
+    } catch { /* silent */ }
+    finally { setActionLoading(null); }
+  };
+
   const cronTemplates = useMemo(() => getCronTemplates(t), [t]);
 
   const addTemplate = async (tpl: ReturnType<typeof getCronTemplates>[0]) => {
@@ -582,7 +597,7 @@ export function CronMonitorPage() {
       {/* ═══ COMMAND BAR ═══ */}
       <div className="shrink-0 flex items-center gap-4 px-6 py-3 border-b border-[rgb(var(--aegis-overlay)/0.06)] bg-[rgb(var(--aegis-overlay)/0.004)]">
         <div className="flex items-center gap-2">
-          <span className="text-base font-extrabold">🚀 Mission Control</span>
+          <span className="text-base font-extrabold">⏰ Cron Monitor</span>
           <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md
             bg-aegis-primary/10 border border-aegis-primary/20 text-aegis-primary uppercase tracking-[1px]">
             {jobs.length} Jobs
@@ -709,6 +724,12 @@ export function CronMonitorPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1.5 pe-3 shrink-0">
+                      {/* Delete */}
+                      <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm(job.id); }}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center border transition-all text-[11px] shrink-0
+                          border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-dim hover:text-aegis-danger hover:border-aegis-danger/30 hover:bg-aegis-danger/[0.04]">
+                        <Trash2 size={11} />
+                      </button>
                       {/* Toggle */}
                       <button onClick={(e) => { e.stopPropagation(); toggleJob(job.id, !job.enabled); }}
                         disabled={actionLoading === job.id}
@@ -902,6 +923,13 @@ export function CronMonitorPage() {
                       hover:text-aegis-text-secondary transition-colors disabled:opacity-40">
                     {selectedJob.enabled ? t('cronDetail.pause') : t('cronDetail.enable')}
                   </button>
+                  <button onClick={() => setDeleteConfirm(selectedJob.id)}
+                    disabled={!!actionLoading}
+                    className="py-2 px-4 rounded-[10px] text-center text-[11px] font-bold
+                      bg-aegis-danger/[0.08] border border-aegis-danger/20 text-aegis-danger
+                      hover:bg-aegis-danger/15 transition-colors disabled:opacity-40">
+                    <Trash2 size={12} className="inline-block" />
+                  </button>
                 </div>
               </motion.div>
             ) : (
@@ -987,6 +1015,61 @@ export function CronMonitorPage() {
           </div>
         </div>
       </div>
+
+      {/* ═══ Delete Confirmation Dialog ═══ */}
+      <AnimatePresence>
+        {deleteConfirm && (() => {
+          const jobToDelete = jobs.find(j => j.id === deleteConfirm);
+          return (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+              onClick={() => setDeleteConfirm(null)}>
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                onClick={e => e.stopPropagation()}
+                className="w-[400px] p-6 rounded-2xl border border-aegis-danger/20 shadow-2xl"
+                style={{ background: 'var(--aegis-bg-frosted)', backdropFilter: 'blur(40px)' }}>
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-aegis-danger/10 border border-aegis-danger/20 shrink-0">
+                    <Trash2 size={20} className="text-aegis-danger" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-aegis-text">Delete Job?</h3>
+                    <p className="text-[11px] text-aegis-text-muted mt-0.5">This action cannot be undone</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.06)] mb-5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{getJobIcon(jobToDelete?.name || '')}</span>
+                    <span className="text-[13px] font-bold text-aegis-text truncate">{jobToDelete?.name || deleteConfirm}</span>
+                  </div>
+                  <div className="text-[10px] text-aegis-text-muted mt-1">{formatSchedule(jobToDelete?.schedule)}</div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button onClick={() => setDeleteConfirm(null)}
+                    className="flex-1 py-2.5 rounded-xl text-[12px] font-semibold
+                      bg-[rgb(var(--aegis-overlay)/0.03)] border border-[rgb(var(--aegis-overlay)/0.08)] text-aegis-text-muted
+                      hover:text-aegis-text-secondary transition-colors">
+                    Cancel
+                  </button>
+                  <button onClick={() => deleteJob(deleteConfirm)}
+                    disabled={actionLoading === `del-${deleteConfirm}`}
+                    className="flex-1 py-2.5 rounded-xl text-[12px] font-semibold
+                      bg-aegis-danger/15 border border-aegis-danger/30 text-aegis-danger
+                      hover:bg-aegis-danger/25 transition-colors disabled:opacity-40">
+                    {actionLoading === `del-${deleteConfirm}`
+                      ? <Loader2 size={14} className="animate-spin mx-auto" />
+                      : 'Delete'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* ═══ Templates Modal ═══ */}
       <AnimatePresence>

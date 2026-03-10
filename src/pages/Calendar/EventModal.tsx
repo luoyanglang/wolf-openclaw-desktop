@@ -3,7 +3,7 @@
 // State machine: 'form' | 'confirmDelete'
 // ═══════════════════════════════════════════════════════════
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trash2, ArrowRight } from 'lucide-react';
 import { useCalendarStore } from '@/stores/calendarStore';
@@ -61,22 +61,6 @@ export function EventModal({ onClose, initialDate, editEvent }: EventModalProps)
   const [recurrence, setRecurrence] = useState<RecurrenceFreq | ''>(editEvent?.recurrence?.freq || '');
   const [deliveryChannel, setDeliveryChannel] = useState<DeliveryChannel>(editEvent?.deliveryChannel || settings.defaultDeliveryChannel);
 
-  // Keyboard: Escape to close, Enter to save
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      if (mode === 'confirmDelete') setMode('form');
-      else onClose();
-    }
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && mode === 'form') {
-      handleSave();
-    }
-  }, [mode, title, date]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
   const handleSave = async () => {
     if (!title.trim()) return;
     setSaving(true);
@@ -105,6 +89,25 @@ export function EventModal({ onClose, initialDate, editEvent }: EventModalProps)
     setSaving(false);
     onClose();
   };
+
+  // Keep a stable ref to handleSave so keyboard shortcut always uses latest form values
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+
+  // Keyboard: Escape to close, Ctrl+Enter to save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (mode === 'confirmDelete') setMode('form');
+        else onClose();
+      }
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && mode === 'form') {
+        handleSaveRef.current();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [mode, onClose]);
 
   const handleDelete = async () => {
     if (!editEvent) return;

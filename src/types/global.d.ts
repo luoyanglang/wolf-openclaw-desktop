@@ -1,6 +1,8 @@
 // AEGIS Desktop — Global Type Declarations
 
 interface AegisAPI {
+  /** Installer-selected language (set by NSIS setup wizard) */
+  installerLanguage?: 'ar' | 'en';
   window: {
     minimize: () => Promise<void>;
     maximize: () => Promise<boolean>;
@@ -66,6 +68,11 @@ interface AegisAPI {
   voice: {
     save: (filename: string, base64: string) => Promise<string | null>;
     read: (filePath: string) => Promise<string | null>;
+    // Phase 3: Secure key storage via Electron keychain (optional — only in Electron)
+    setKey?: (provider: string, key: string) => Promise<void>;
+    getKey?: (provider: string) => Promise<string | null>;
+    deleteKey?: (provider: string) => Promise<void>;
+    testKey?: (provider: string, key: string) => Promise<boolean>;
   };
   calendar?: {
     getEvents: () => Promise<any[]>;

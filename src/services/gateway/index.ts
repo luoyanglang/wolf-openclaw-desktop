@@ -6,6 +6,7 @@
 
 import { GatewayConnection, type GatewayCallbacks, type ChatMessage, type MediaInfo } from './Connection';
 import { ChatHandler } from './ChatHandler';
+import { waitForResponse } from './responseBus';
 
 // Re-export types for consumers
 export type { ChatMessage, MediaInfo, GatewayCallbacks };
@@ -24,7 +25,7 @@ export const gateway = {
 
   // Connection
   connect(url: string, token: string) { connection.connect(url, token); },
-  disconnect() { connection.disconnect(); },
+  disconnect() { chatHandler.destroy(); connection.disconnect(); },
   getStatus() { return connection.getStatus(); },
 
   // Messaging
@@ -90,6 +91,16 @@ export const gateway = {
   async getSessionsUsage(params: any = {}) { return connection.request('sessions.usage', { limit: 50, ...params }); },
   async getSessionTimeseries(key: string) { return connection.request('sessions.usage.timeseries', { key }); },
   async getSessionLogs(key: string, limit = 200) { return connection.request('sessions.usage.logs', { key, limit }); },
+
+  // Voice Live: send message and wait for full streaming response
+  async sendMessageAndWait(message: string, sessionKey: string, timeoutMs = 60000): Promise<string> {
+    const result = await this.sendMessage(message, [], sessionKey) as any;
+    const runId = result?.runId;
+    if (!runId) {
+      throw new Error('No runId returned from sendMessage');
+    }
+    return waitForResponse(runId, timeoutMs);
+  },
 
   // Queue
   getQueueSize() { return connection.getQueueSize(); },

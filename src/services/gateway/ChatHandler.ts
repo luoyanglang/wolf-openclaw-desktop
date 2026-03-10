@@ -7,6 +7,7 @@
 
 import { extractText, stripDirectives } from '@/processing/TextCleaner';
 import { handleGatewayEvent } from '@/stores/gatewayDataStore';
+import { resolveResponse, rejectResponse, hasPendingWaiter } from './responseBus';
 import { useChatStore } from '@/stores/chatStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useWorkshopStore, Task } from '@/stores/workshopStore';
@@ -165,6 +166,13 @@ export class ChatHandler {
   private pendingStreamMedia: MediaInfo | undefined = undefined;
 
   constructor(private conn: GatewayConnection) {}
+
+  /** Clean up timers and state — call from Connection.disconnect() */
+  destroy() {
+    this.forceFlushStream();
+    this.currentStreamContent = '';
+    this.currentRunId = null;
+  }
 
   /** Flush buffered stream content to the UI */
   private flushStream() {
@@ -461,8 +469,19 @@ export class ChatHandler {
       return; // Don't show as a regular message
     }
 
+    // Check if this runId is being awaited by Voice Live (responseBus).
+    // If so, skip chat UI updates — Voice pipeline handles it separately.
+    const isVoiceWaiter = runId ? hasPendingWaiter(runId) : false;
+
     switch (state) {
       case 'delta': {
+        // Voice Live responses: only track content, don't show in chat UI
+        if (isVoiceWaiter) {
+          this.currentStreamContent = messageText;
+          this.currentRunId = mId;
+          break;
+        }
+
         // Clean content for display (don't execute workshop commands during streaming)
         let cleaned = messageText;
         cleaned = stripDirectives(cleaned);
@@ -471,9 +490,18 @@ export class ChatHandler {
         // Strip button markers visually
         cleaned = cleaned.replace(/\[\[button:[^\]]+\]\]/g, '');
 
-        if (cleaned.length >= this.currentStreamContent.length || messageText.length >= this.currentStreamContent.length) {
-          this.currentStreamContent = messageText; // Keep RAW for final processing
+        // New run detected (e.g. post-tool-call response) — reset tracking
+        // Without this, the length guard below blocks shorter post-tool deltas
+        // because currentStreamContent still holds the longer pre-tool content.
+        if (mId !== this.currentRunId) {
+          // Flush any pending content from the previous run before resetting
+          this.forceFlushStream();
+          this.currentStreamContent = '';
           this.currentRunId = mId;
+        }
+
+        if (messageText.length > 0) {
+          this.currentStreamContent = messageText; // Keep RAW for final processing
           // Micro-batch: buffer chunk, flush to React at most every 50ms
           this.bufferStreamChunk(mId, cleaned, media);
         }
@@ -515,7 +543,11 @@ export class ChatHandler {
           useChatStore.getState().setQuickReplies([]);
         }
 
-        this.conn.callbacks?.onStreamEnd(mId, finalText, media);
+        // Notify Voice Live response waiters first — if consumed, skip chat UI
+        const consumed = resolveResponse(runId, finalText);
+        if (!consumed) {
+          this.conn.callbacks?.onStreamEnd(mId, finalText, media);
+        }
         break;
       }
 
@@ -524,23 +556,31 @@ export class ChatHandler {
         const errorText = p.errorMessage || i18n.t('errors.occurred');
         this.currentStreamContent = '';
         this.currentRunId = null;
-        useChatStore.getState().clearThinking();
-        this.conn.callbacks?.onStreamEnd(mId, `⚠️ ${errorText}`);
+        // If Voice waiter exists, reject it and skip chat UI
+        if (isVoiceWaiter) {
+          rejectResponse(runId, errorText);
+        } else {
+          useChatStore.getState().clearThinking();
+          this.conn.callbacks?.onStreamEnd(mId, `⚠️ ${errorText}`);
+          rejectResponse(runId, errorText);
+        }
         break;
       }
 
       case 'aborted': {
         this.forceFlushStream();
-        // Use messageText from abort event, fall back to accumulated stream content
         const finalContent = messageText || this.currentStreamContent;
         this.currentStreamContent = '';
         this.currentRunId = null;
-        useChatStore.getState().clearThinking();
-
-        // Strip directive tags (same as final case)
-        const cleaned = finalContent ? stripDirectives(finalContent) : '';
-
-        this.conn.callbacks?.onStreamEnd(mId, cleaned || `⏹️ ${i18n.t('chat.stopped', 'Stopped')}`);
+        // If Voice waiter exists, reject it and skip chat UI
+        if (isVoiceWaiter) {
+          rejectResponse(runId, 'aborted');
+        } else {
+          useChatStore.getState().clearThinking();
+          const cleaned = finalContent ? stripDirectives(finalContent) : '';
+          this.conn.callbacks?.onStreamEnd(mId, cleaned || `⏹️ ${i18n.t('chat.stopped', 'Stopped')}`);
+          rejectResponse(runId, 'aborted');
+        }
         break;
       }
 

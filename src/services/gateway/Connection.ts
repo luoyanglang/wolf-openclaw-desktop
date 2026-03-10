@@ -274,6 +274,16 @@ export class GatewayConnection {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+    if (this.connectTimer) {
+      clearTimeout(this.connectTimer);
+      this.connectTimer = null;
+    }
+    // Reject all pending requests immediately
+    for (const [, pending] of this.pendingRequests) {
+      clearTimeout(pending.timer);
+      pending.reject('Disconnected');
+    }
+    this.pendingRequests.clear();
     this.reconnectAttempt = this.maxReconnects;
     if (this.ws) {
       this.ws.close();
