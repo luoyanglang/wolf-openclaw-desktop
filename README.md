@@ -9,7 +9,7 @@
 ![Electron](https://img.shields.io/badge/Electron-34-47848F?logo=electron&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
-![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.2.21+-blueviolet)
+![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.3.12+-blueviolet)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
