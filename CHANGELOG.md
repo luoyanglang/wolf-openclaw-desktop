@@ -34,6 +34,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Security
 - **CSP Hardening** — removed `unsafe-eval` from Content-Security-Policy, added `frame-src` directive
+- **Self-signed SSL support** — connections to gateways behind reverse proxies with self-signed certificates now work correctly instead of silently failing to the pairing screen
 
 ### Changed
 - **Update Notification** — right-click version badge to open GitHub releases page directly. Tooltip updated with instructions.

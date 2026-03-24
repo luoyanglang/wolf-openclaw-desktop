@@ -18,6 +18,10 @@ import * as fs from 'fs';
 import { createTray } from './tray';
 import { initI18n, setLanguage, t } from './i18n';
 import * as crypto from 'crypto';
+
+// Allow connections to gateways behind self-signed SSL certs.
+// Without this, Node.js fetch (used for pairing) silently rejects HTTPS.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import { execFileSync, spawnSync, execSync } from 'child_process';
 // node-pty: dynamic require — graceful fallback if native module unavailable
 let pty: typeof import('node-pty') | null = null;
@@ -1431,6 +1435,15 @@ if (!gotTheLock) {
     tray = createTray(mainWindow!, app);
     registerHotkey();
 
+    // Accept self-signed / invalid certificates for WSS connections
+    // behind reverse proxies (e.g. self-signed nginx, local dev certs).
+    // Without this, Electron silently rejects WSS and the user sees
+    // a pairing screen instead of a proper error.
+    app.on('certificate-error', (event, _webContents, _url, _error, _cert, callback) => {
+      event.preventDefault();
+      callback(true);
+    });
+
     // Gateway connection is now handled by React renderer
     // No auto-connect from main process needed
   });
@@ -1454,5 +1467,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('Æ AEGIS Desktop v5.6.1 started');
+console.log('Æ AEGIS Desktop v5.6.2 started');
 
