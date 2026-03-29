@@ -6,12 +6,12 @@
 
 ---
 
-![Version](https://img.shields.io/badge/Version-6.0.0-blue)
-![Electron](https://img.shields.io/badge/Electron-35-47848F?logo=electron&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
-![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.3.12+-blueviolet)
-![License](https://img.shields.io/badge/License-MIT-green)
+[![Version](https://img.shields.io/badge/Version-6.0.0-blue)](https://github.com/rshodoskar-star/openclaw-desktop/releases/tag/v6.0.0)
+[![Electron](https://img.shields.io/badge/Electron-35-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-2026.3.12+-blueviolet)](https://github.com/openclaw/openclaw)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
