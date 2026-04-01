@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// Dashboard — AEGIS Desktop (Cost-First Design)
+// Dashboard — WolfClaw Desktop (Cost-First Design)
 // Sections: Top Bar → Hero Cards → Chart + Agents → Actions
 // ═══════════════════════════════════════════════════════════
 

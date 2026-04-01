@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "AEGIS",
     "fullName": "Advanced Executive General Intelligence System",
@@ -573,7 +573,9 @@
     "needsApproval": "جهازك يحتاج موافقة",
     "pairWithGateway": "ربط مع Gateway",
     "enterCode": "أدخل هذا الكود في Gateway:",
-    "openTerminal": "افتح Terminal وشغّل: openclaw gateway approve",
+    "openTerminal": "افتح Terminal وشغّل: openclaw devices approve",
+    "windowsApprovalHint": "إذا كان OpenClaw مثبتًا على Windows (CMD / PowerShell):",
+    "dockerApprovalHint": "إذا كان OpenClaw يعمل داخل Docker:",
     "orApproveFromUI": "أو وافق من واجهة OpenClaw الرئيسية",
     "waitingApproval": "في انتظار الموافقة...",
     "requestingPairing": "جاري طلب الربط...",

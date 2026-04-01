@@ -1,13 +1,13 @@
 {
-  "name": "aegis-desktop",
-  "version": "6.0.0",
-  "description": "AEGIS Desktop — Advanced Chat Client for OpenClaw Gateway",
+  "name": "wolf-openclaw-desktop",
+  "version": "6.0.1",
+  "description": "WolfClaw Desktop - Desktop control center for OpenClaw Gateway",
   "main": "dist-electron/main.js",
-  "author": "Rashed",
+  "author": "WolfClaw contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AegisStar/aegis-desktop.git"
+    "url": "https://github.com/luoyanglang/wolf-openclaw-desktop.git"
   },
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"vite\" \"wait-on http://localhost:5173 && node scripts/build-electron.js && electron . --enable-logging\"",
@@ -64,9 +64,9 @@
     "wait-on": "^8.0.3"
   },
   "build": {
-    "appId": "com.aegis.desktop",
-    "productName": "AEGIS Desktop",
-    "copyright": "Copyright © 2026 Rashed",
+    "appId": "com.wolfclaw.desktop",
+    "productName": "WolfClaw Desktop",
+    "copyright": "Copyright © 2026 WolfClaw contributors",
     "asar": true,
     "asarUnpack": [
       "node_modules/node-pty/**/*"
@@ -90,8 +90,8 @@
       "allowElevation": true,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
-      "shortcutName": "AEGIS Desktop",
-      "menuCategory": "AEGIS",
+      "shortcutName": "WolfClaw Desktop",
+      "menuCategory": "WolfClaw",
       "perMachine": false,
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
@@ -99,12 +99,13 @@
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true,
       "installerSidebar": null,
-      "artifactName": "AEGIS-Desktop-Setup-${version}.${ext}",
+      "artifactName": "WolfClaw-Desktop-Setup-${version}.${ext}",
       "unicode": true,
       "include": "installer/nsis-script.nsh",
       "installerLanguages": [
         "en_US",
-        "ar_SA"
+        "ar_SA",
+        "zh_CN"
       ]
     },
     "directories": {
@@ -126,17 +127,17 @@
     "fileAssociations": [],
     "protocols": [
       {
-        "name": "AEGIS Protocol",
+        "name": "WolfClaw Protocol",
         "schemes": [
-          "aegis"
+          "wolfclaw"
         ]
       }
     ],
     "publish": [
       {
         "provider": "github",
-        "owner": "rshodoskar-star",
-        "repo": "openclaw-desktop"
+        "owner": "luoyanglang",
+        "repo": "wolf-openclaw-desktop"
       }
     ],
     "npmRebuild": false

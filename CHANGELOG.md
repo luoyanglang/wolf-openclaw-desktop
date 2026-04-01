@@ -1,10 +1,26 @@
 # Changelog
 
-All notable changes to AEGIS Desktop are documented here.
+All notable changes to WolfClaw Desktop are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
+
+## [6.0.1] - 2026-04-01
+
+### Added
+
+- **Simplified Chinese locale support** - added full `zh` locale coverage so Chinese users can use the desktop UI without falling back to English copy.
+
+### Fixed
+
+- **Locale interpolation placeholders** - corrected translation placeholder formatting across locale files so dynamic values render correctly in different languages.
+- **Plugin Center first-open crash** - fixed the `t is not defined` runtime error in `PluginsPage` so opening a plugin for the first time no longer lands on the error screen before succeeding on retry.
+- **Pairing approval screen localization** - removed the remaining hardcoded English strings from the pairing screen and routed them through the i18n layer, including the approval instructions for Windows and Docker environments.
+
+### Changed
+
+- **Screenshot send robustness** - desktop screenshots now get a lightweight compress or resize pass when needed before upload, which reduces the chance of large PNG captures running into attachment edge cases.
 
 ## [6.0.0] — 2026-03-29
 
@@ -81,7 +97,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - **Logs Viewer Upgrade** — search, level filter (Error/Warn/Info/Debug), time range selector, live tail with auto-scroll.
 - **Skills Page** — card grid design for installed skills with status badges (Ready/Disabled), toggle switches, filter tabs. ClawHub marketplace preserved.
 - **Sidebar Sections** — organized into Main/Monitor/Tools/More with visual dividers.
-- **Memory Explorer Stats** — stats bar showing total memories, messages, KG relations, embedding coverage from AEGIS DB.
+- **Memory Explorer Stats** — stats bar showing total memories, messages, KG relations, and embedding coverage from the local app database.
 - **Device Auth v3** — signature now includes `platform` + `deviceFamily` for stronger binding.
 - **Dynamic Model Names** — TitleBar checks `models.list` aliases before falling back to hardcoded patterns. Added Haiku 4.5, Gemini Flash, GPT-5, Kimi K2, Llama 3, Qwen.
 
@@ -139,9 +155,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [5.5.1] — 2026-03-10
 
 ### Added
-- **Voice Chat** — real-time voice conversations powered by Gemini Live API as a speech relay. Gemini handles STT/TTS via `ask_aegis` function calling, Gateway handles the intelligence. AudioWorklet mic capture (PCM16 @ 16kHz) with gapless playback (PCM @ 24kHz). Silero VAD filters background noise. Aura visualizer with four animated states (idle, listening, thinking, speaking). Dedicated settings panel for API key, response model, voice selection. Isolated voice sessions separate from text chat.
+- **Voice Chat** — real-time voice conversations powered by Gemini Live API as a speech relay. Gemini handles STT/TTS via the Gateway speech bridge, while the Gateway handles the intelligence. AudioWorklet mic capture (PCM16 @ 16kHz) with gapless playback (PCM @ 24kHz). Silero VAD filters background noise. Aura visualizer with four animated states (idle, listening, thinking, speaking). Dedicated settings panel for API key, response model, voice selection. Isolated voice sessions separate from text chat.
 - **Plugin System** — modular page with 8 built-in plugins (Pixel Agents, Session Manager, Logs Viewer, Multi-Agent, File Manager, Code Interpreter, MCP Tools, Analytics). Responsive grid layout, inline rendering without route navigation, persistent state via localStorage. Replaced Pixel Agents sidebar entry with Plugins (🧩).
-- **Office Visualization** — virtual office page showing agents as characters working at desks in real-time (closes [#8](https://github.com/rshodoskar-star/openclaw-desktop/issues/8))
+- **Office Visualization** — virtual office page showing agents as characters working at desks in real-time.
 - **Code Interpreter & MCP Tools — shared history loading** — extracted `loadSessionHistory` from ChatView into chatStore as a shared action. Both pages now auto-load history on open (no need to visit Chat first). Added `getToolBlocks()` that forces tool parsing regardless of `toolIntentEnabled` setting.
 - **MCP Tools — Unknown Tools section** — tools that appear in the session but aren't in the known catalog now show under "Other Active Tools" instead of being hidden
 - **Cron Monitor — Delete Job** — delete button with confirmation dialog and Gateway API integration
@@ -149,7 +165,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - **Cron Monitor title** — changed from "Mission Control" to "Cron Monitor"
 - **Dashboard title** — changed from "Mission Control" to "Dashboard"
-- **Settings footer** — changed from "Mission Control" to "AEGIS Desktop"
+- **Settings footer** — changed from "Mission Control" to "WolfClaw Desktop"
 - **Cron Monitor sort order** — latest successful run now appears at the bottom
 - **Voice Chat header overlap** — back button no longer overlaps page title in both LTR and RTL layouts
 - **Chat messages lost after tool calls** — post-tool-call text now appears in real-time
@@ -252,7 +268,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - **Thinking Picker** — change reasoning level (off / low / medium / high)
 - **Tool Intent View** — collapsible cards showing tool calls with params and results
 - **Light Mode** — complete theme with custom palette
-- **Theme System** — CSS variable architecture (`--aegis-*`), zero hardcoded colors
+- **Theme System** — shared theme token architecture with zero hardcoded colors
 - **1M Context Toggle** — extended context for Anthropic API
 - **`gateway.call()`** — public RPC method for direct gateway communication
 

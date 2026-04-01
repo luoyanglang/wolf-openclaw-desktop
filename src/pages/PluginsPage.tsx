@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// PluginsPage — Plugin System for AEGIS Desktop
+// PluginsPage — Plugin System for WolfClaw Desktop
 // Displays hidden/extra pages as interactive cards in a grid.
 // Selecting a plugin renders it inline (no route navigation),
 // with a back header and localStorage persistence.
@@ -250,6 +250,8 @@ function PluginCard({ plugin, enabled, onOpen, onToggle }: PluginCardProps) {
 
 // ── Loading fallback ───────────────────────────────────────
 function PluginLoader() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-center h-full gap-2 text-aegis-text-muted text-[13px]">
       {/* Spinning ring */}
@@ -361,7 +363,7 @@ export function PluginsPage() {
           🧩 Plugins
         </h1>
         <p className="text-aegis-text-muted text-[13px] mt-0.5">
-          Extra pages and tools available in AEGIS Desktop
+          Extra pages and tools available in WolfClaw Desktop
         </p>
       </div>
 

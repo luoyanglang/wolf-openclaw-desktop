@@ -1,11 +1,11 @@
-# Contributing to AEGIS Desktop
+# Contributing to WolfClaw Desktop
 
 Thank you for your interest in contributing! Here's how to get started.
 
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/openclaw-desktop.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/wolf-openclaw-desktop.git`
 3. Install dependencies: `npm install`
 4. Start the dev server: `npm run dev`
 

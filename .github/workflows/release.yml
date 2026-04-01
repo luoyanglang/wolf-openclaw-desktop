@@ -1,0 +1,417 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag, for example v6.0.1'
+        required: true
+        default: 'v6.0.1'
+      release_name:
+        description: 'Optional release title override'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+  PRIMARY_RELEASE_BRANCH: 'main'
+  LEGACY_RELEASE_BRANCH: 'master'
+
+jobs:
+  verify-release-source:
+    name: Verify Release Source
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify release branch and commit
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CURRENT_REF_NAME: ${{ github.ref_name }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          git fetch origin "${PRIMARY_RELEASE_BRANCH}" "${LEGACY_RELEASE_BRANCH}" --tags --force || true
+
+          if git show-ref --verify --quiet "refs/remotes/origin/${PRIMARY_RELEASE_BRANCH}"; then
+            release_branch="${PRIMARY_RELEASE_BRANCH}"
+          elif git show-ref --verify --quiet "refs/remotes/origin/${LEGACY_RELEASE_BRANCH}"; then
+            release_branch="${LEGACY_RELEASE_BRANCH}"
+          else
+            echo "::error::Neither origin/${PRIMARY_RELEASE_BRANCH} nor origin/${LEGACY_RELEASE_BRANCH} exists. Release source cannot be verified."
+            exit 1
+          fi
+
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ] && [ "${CURRENT_REF_NAME}" != "${release_branch}" ]; then
+            echo "::error::Manual releases must be launched from ${release_branch}. Current ref is ${CURRENT_REF_NAME}."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "${CURRENT_SHA}" "origin/${release_branch}"; then
+            echo "::error::Commit ${CURRENT_SHA} is not contained in origin/${release_branch}. Formal releases must come from the release line."
+            exit 1
+          fi
+
+  build-windows:
+    name: Build Release Packages
+    needs: verify-release-source
+    runs-on: windows-latest
+    outputs:
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      release_name: ${{ steps.meta.outputs.release_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: meta
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $releaseTag = "${{ github.event.inputs.release_tag }}"
+            $releaseName = "${{ github.event.inputs.release_name }}"
+          }
+          else {
+            $releaseTag = "${env:GITHUB_REF_NAME}"
+            $releaseName = ""
+          }
+
+          if (-not $releaseTag) {
+            throw "Release tag could not be resolved."
+          }
+
+          if (-not $releaseName) {
+            if ($releaseTag -eq "v6.0.1") {
+              $releaseName = "WolfClaw Desktop v6.0.1 - Stability and Localization Update"
+            }
+            else {
+              $releaseName = "WolfClaw Desktop $releaseTag"
+            }
+          }
+
+          "release_tag=$releaseTag" >> $env:GITHUB_OUTPUT
+          "release_name=$releaseName" >> $env:GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build installer package
+        run: npm run package
+
+      - name: Build portable package
+        run: npm run package:portable
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            release/WolfClaw-Desktop-Setup-*.exe
+            release/WolfClaw-Desktop-Setup-*.blockmap
+            release/WolfClaw Desktop *.exe
+            release/latest.yml
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-windows
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: ./release-artifacts
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd release-artifacts
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Prepare release copy
+        id: announcement
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.build-windows.outputs.release_tag }}
+          RELEASE_NAME: ${{ needs.build-windows.outputs.release_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python <<'PY'
+          import os
+          import re
+          import textwrap
+
+          release_tag = os.environ["RELEASE_TAG"]
+          release_name = os.environ["RELEASE_NAME"]
+          version = release_tag.lstrip("v")
+          repository = os.environ["REPOSITORY"]
+          changelog_path = "CHANGELOG.md"
+
+          tag_url = f"https://github.com/{repository}/releases/tag/{release_tag}"
+          docs_url = f"https://github.com/{repository}/blob/main/README.zh-CN.md"
+          docs_en_url = f"https://github.com/{repository}/blob/main/README.md"
+          releases_url = f"https://github.com/{repository}/releases"
+          issues_url = f"https://github.com/{repository}/issues"
+
+          highlights = []
+
+          if os.path.exists(changelog_path):
+            with open(changelog_path, "r", encoding="utf-8") as handle:
+              changelog = handle.read()
+
+            pattern = rf"(?ms)^## \[{re.escape(version)}\].*?(?=^## \[|\Z)"
+            match = re.search(pattern, changelog)
+
+            if match:
+              section = match.group(0)
+              bullets = re.findall(r"^-\s+(.*)$", section, re.MULTILINE)
+
+              def clean_markdown(text: str) -> str:
+                text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+                text = re.sub(r"`([^`]+)`", r"\1", text)
+                return text.strip()
+
+              highlights = [f"- {clean_markdown(item)}" for item in bullets[:5]]
+
+          fallback_highlights = [
+            "- 本次更新详情请查看 GitHub Release 页面和 CHANGELOG。"
+          ]
+
+          if not highlights:
+            highlights = fallback_highlights
+
+          if release_tag == "v6.0.1":
+            tg_highlights = [
+              "- 新增简体中文支持",
+              "- 修复多语言占位符问题",
+              "- 修复插件中心首次打开插件报错",
+              "- 补齐配对审批页本地化",
+              "- 优化截图发送稳定性",
+            ]
+
+            release_body = textwrap.dedent(
+              f"""\
+              ## 中文说明
+
+              `{release_tag}` 是基于 `v6.0.0` 的一轮稳定性与本地化更新，重点放在中文支持补齐、插件中心稳定性修复、配对页本地化补齐，以及截图发送体验优化。
+
+              ### 主要更新
+
+              - 新增简体中文支持，中文用户现在可以更完整地使用桌面端界面
+              - 修复多语言占位符问题，避免动态内容在不同语言下显示异常
+              - 修复插件中心首次打开插件时可能出现的 `t is not defined` 前端运行时错误
+              - 补齐配对审批页的本地化内容，避免中文环境下仍然出现残留英文提示
+              - 优化截图发送链路，在必要时对截图做轻量压缩或缩放，减少附件边缘问题
+
+              ### 下载内容
+
+              - Windows 安装版
+              - Windows 便携版
+              - `latest.yml` 自动更新元数据
+              - `SHA256SUMS.txt` 校验文件
+
+              ### 反馈与文档
+
+              - 在线文档: [README.zh-CN]({docs_url})
+              - 问题反馈: [Issues]({issues_url})
+
+              ---
+
+              ## English Summary
+
+              `{release_tag}` is a stability and localization update on top of `v6.0.0`, focused on Chinese language support, plugin-page reliability, pairing-screen localization, and more robust screenshot handling.
+
+              ### Highlights
+
+              - Added Simplified Chinese support
+              - Fixed locale interpolation placeholder issues
+              - Fixed the first-open plugin runtime error (`t is not defined`)
+              - Localized the pairing approval screen more completely
+              - Improved screenshot upload robustness with lightweight pre-send optimization
+
+              ### Assets
+
+              - Windows installer
+              - Windows portable build
+              - `latest.yml` auto-update metadata
+              - `SHA256SUMS.txt` checksum file
+
+              ### Links
+
+              - Documentation: [README]({docs_en_url})
+              - Issue tracker: [Issues]({issues_url})
+              """
+            ).strip()
+          else:
+            tg_highlights = highlights
+            release_body = textwrap.dedent(
+              f"""\
+              ## 中文说明
+
+              `{release_tag}` 是 WolfClaw Desktop 的正式发布版本。详细更新请查看根目录 `CHANGELOG.md`，下方列出本次版本的主要要点。
+
+              ### 主要更新
+
+              {os.linesep.join(highlights)}
+
+              ### 下载内容
+
+              - Windows 安装版
+              - Windows 便携版
+              - `latest.yml` 自动更新元数据
+              - `SHA256SUMS.txt` 校验文件
+
+              ### 反馈与文档
+
+              - 在线文档: [README.zh-CN]({docs_url})
+              - 问题反馈: [Issues]({issues_url})
+
+              ---
+
+              ## English Summary
+
+              `{release_tag}` is an official WolfClaw Desktop release. Please refer to `CHANGELOG.md` for the detailed change list. The highlights below summarize the main points of this version.
+
+              ### Highlights
+
+              {os.linesep.join(highlights)}
+
+              ### Assets
+
+              - Windows installer
+              - Windows portable build
+              - `latest.yml` auto-update metadata
+              - `SHA256SUMS.txt` checksum file
+
+              ### Links
+
+              - Documentation: [README]({docs_en_url})
+              - Issue tracker: [Issues]({issues_url})
+              """
+            ).strip()
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write(f"tag_url={tag_url}\n")
+            output.write(f"docs_url={docs_url}\n")
+            output.write(f"releases_url={releases_url}\n")
+            output.write(f"issues_url={issues_url}\n")
+            output.write(f"release_name={release_name}\n")
+            output.write("highlights<<EOF\n")
+            output.write("\n".join(tg_highlights))
+            output.write("\nEOF\n")
+            output.write("release_body<<EOF\n")
+            output.write(release_body)
+            output.write("\nEOF\n")
+          PY
+
+      - name: Create GitHub release
+        id: github_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.build-windows.outputs.release_tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.announcement.outputs.release_name }}
+          generate_release_notes: false
+          body: ${{ steps.announcement.outputs.release_body }}
+          files: |
+            release-artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Telegram channel
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHANNEL_ID != '' }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            🎉 WolfClaw Desktop ${{ needs.build-windows.outputs.release_tag }} 已发布
+
+            📦 本次提供：
+            - Windows 安装版
+            - Windows 便携版
+            - latest.yml 自动更新元数据
+
+            📢 更新日志：
+            GitHub Release 与 CHANGELOG 已同步发布
+
+            ✨ 主要更新：
+            ${{ steps.announcement.outputs.highlights }}
+
+            🔗 下载地址：
+            ${{ steps.announcement.outputs.tag_url }}
+
+            📚 在线文档：
+            ${{ steps.announcement.outputs.docs_url }}
+
+            💬 关注发布：
+            ${{ steps.announcement.outputs.releases_url }}
+
+            🐞 Issue 反馈：
+            ${{ steps.announcement.outputs.issues_url }}
+
+            🙌 欢迎大家下载体验，有问题请通过 Issue 反馈。
+
+      - name: Notify Telegram group
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_GROUP_ID != '' }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_GROUP_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            🎉 WolfClaw Desktop ${{ needs.build-windows.outputs.release_tag }} 已发布
+
+            📦 本次提供：
+            - Windows 安装版
+            - Windows 便携版
+            - latest.yml 自动更新元数据
+
+            📢 更新日志：
+            GitHub Release 与 CHANGELOG 已同步发布
+
+            ✨ 主要更新：
+            ${{ steps.announcement.outputs.highlights }}
+
+            🔗 下载地址：
+            ${{ steps.announcement.outputs.tag_url }}
+
+            📚 在线文档：
+            ${{ steps.announcement.outputs.docs_url }}
+
+            💬 关注发布：
+            ${{ steps.announcement.outputs.releases_url }}
+
+            🐞 Issue 反馈：
+            ${{ steps.announcement.outputs.issues_url }}
+
+            🙌 欢迎大家下载体验，有问题请通过 Issue 反馈。

@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "AEGIS",
     "fullName": "Sistema de Inteligencia General Ejecutiva Avanzada",
@@ -573,7 +573,9 @@
     "needsApproval": "El Dispositivo Necesita Aprobación",
     "pairWithGateway": "Vincular con Gateway",
     "enterCode": "Ingresa este código en Gateway:",
-    "openTerminal": "Abre la Terminal y ejecuta: openclaw gateway approve",
+    "openTerminal": "Abre la Terminal y ejecuta: openclaw devices approve",
+    "windowsApprovalHint": "Si OpenClaw está instalado en Windows (CMD / PowerShell):",
+    "dockerApprovalHint": "Si OpenClaw se ejecuta dentro de Docker:",
     "orApproveFromUI": "O aprueba desde la Interfaz de Control de OpenClaw",
     "waitingApproval": "Esperando aprobación...",
     "requestingPairing": "Solicitando vinculación...",

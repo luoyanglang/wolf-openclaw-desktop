@@ -1,4 +1,4 @@
-{
+﻿{
   "app": {
     "name": "AEGIS",
     "fullName": "高级行政通用智能系统",
@@ -573,7 +573,9 @@
     "needsApproval": "设备需要审批",
     "pairWithGateway": "与 Gateway 配对",
     "enterCode": "在 Gateway 中输入此代码：",
-    "openTerminal": "打开终端并运行：openclaw gateway approve",
+    "openTerminal": "打开终端并运行：openclaw devices approve",
+    "windowsApprovalHint": "如果 OpenClaw 安装在 Windows 上（CMD / PowerShell）：",
+    "dockerApprovalHint": "如果 OpenClaw 运行在 Docker 中：",
     "orApproveFromUI": "或从 OpenClaw 控制界面审批",
     "waitingApproval": "等待审批...",
     "requestingPairing": "请求配对中...",

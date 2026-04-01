@@ -36,6 +36,108 @@ interface PendingFile {
   path?: string;  // Windows path — non-image files send path instead of base64
 }
 
+const MAX_INLINE_SCREENSHOT_BYTES = 1_800_000;
+const MAX_SCREENSHOT_DIMENSION = 1600;
+
+function estimateBase64Bytes(base64: string): number {
+  return Math.round(base64.length * 0.75);
+}
+
+async function loadImageFromDataUrl(dataUrl: string): Promise<HTMLImageElement> {
+  return await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Failed to load screenshot preview'));
+    img.src = dataUrl;
+  });
+}
+
+async function optimizeScreenshotDataUrl(dataUrl: string): Promise<{
+  dataUrl: string;
+  base64: string;
+  mimeType: string;
+  extension: 'png' | 'jpg';
+  size: number;
+}> {
+  const originalBase64 = dataUrl.replace(/^data:[^;]+;base64,/, '');
+  const originalSize = estimateBase64Bytes(originalBase64);
+
+  if (originalSize <= MAX_INLINE_SCREENSHOT_BYTES) {
+    return {
+      dataUrl,
+      base64: originalBase64,
+      mimeType: 'image/png',
+      extension: 'png',
+      size: originalSize,
+    };
+  }
+
+  const img = await loadImageFromDataUrl(dataUrl);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return {
+      dataUrl,
+      base64: originalBase64,
+      mimeType: 'image/png',
+      extension: 'png',
+      size: originalSize,
+    };
+  }
+
+  const baseScale = Math.min(1, MAX_SCREENSHOT_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight));
+  let width = Math.max(1, Math.round(img.naturalWidth * baseScale));
+  let height = Math.max(1, Math.round(img.naturalHeight * baseScale));
+
+  let best = {
+    dataUrl,
+    base64: originalBase64,
+    mimeType: 'image/png',
+    extension: 'png' as const,
+    size: originalSize,
+  };
+
+  const qualitySteps = [0.9, 0.82, 0.74, 0.66, 0.58];
+  const scaleSteps = [1, 0.9, 0.8, 0.7];
+
+  for (const scale of scaleSteps) {
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+
+    // JPEG has no alpha; paint a solid background first.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    for (const quality of qualitySteps) {
+      const candidateDataUrl = canvas.toDataURL('image/jpeg', quality);
+      const candidateBase64 = candidateDataUrl.replace(/^data:[^;]+;base64,/, '');
+      const candidateSize = estimateBase64Bytes(candidateBase64);
+      if (candidateSize < best.size) {
+        best = {
+          dataUrl: candidateDataUrl,
+          base64: candidateBase64,
+          mimeType: 'image/jpeg',
+          extension: 'jpg',
+          size: candidateSize,
+        };
+      }
+      if (candidateSize <= MAX_INLINE_SCREENSHOT_BYTES) {
+        return {
+          dataUrl: candidateDataUrl,
+          base64: candidateBase64,
+          mimeType: 'image/jpeg',
+          extension: 'jpg',
+          size: candidateSize,
+        };
+      }
+    }
+  }
+
+  return best;
+}
+
 // ── Slash commands definition ──
 const SLASH_COMMANDS = [
   { cmd: '/new', label: 'New Session', icon: FilePlus },
@@ -294,14 +396,31 @@ export function MessageInput() {
     }
   };
 
-  const handleScreenshotCapture = (dataUrl: string) => {
-    const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
-    setFiles((prev) => [...prev, {
-      name: `screenshot-${Date.now()}.png`, base64, mimeType: 'image/png',
-      isImage: true, size: base64.length * 0.75, preview: dataUrl,
-    }]);
+  const handleScreenshotCapture = useCallback(async (dataUrl: string) => {
+    try {
+      const optimized = await optimizeScreenshotDataUrl(dataUrl);
+      setFiles((prev) => [...prev, {
+        name: `screenshot-${Date.now()}.${optimized.extension}`,
+        base64: optimized.base64,
+        mimeType: optimized.mimeType,
+        isImage: true,
+        size: optimized.size,
+        preview: optimized.dataUrl,
+      }]);
+    } catch (err) {
+      console.warn('[Screenshot] Optimization failed, using original PNG:', err);
+      const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+      setFiles((prev) => [...prev, {
+        name: `screenshot-${Date.now()}.png`,
+        base64,
+        mimeType: 'image/png',
+        isImage: true,
+        size: estimateBase64Bytes(base64),
+        preview: dataUrl,
+      }]);
+    }
     textareaRef.current?.focus();
-  };
+  }, []);
 
   // ── STT result handler ──
   const handleSTTResult = useCallback((text: string) => {

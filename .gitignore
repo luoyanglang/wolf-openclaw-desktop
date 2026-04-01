@@ -1,26 +1,44 @@
 node_modules/
+
+# Build and packaging outputs
 dist/
 dist-electron/
 release/
+out/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Environment and local config
 .env*
 aegis-config.json
+wolfclaw-config.json
+
+# Local scratch and archived work
 _old/
 UI/
-AEGIS-Desktop-v5-UPGRADE-PLAN.md
--e 
-# v5.1 concept mockups
-*-concept*.html
 .trash/
+
+# Local planning or one-off scripts not meant for repo tracking
+AEGIS-Desktop-v5-UPGRADE-PLAN.md
+*-concept*.html
 scripts/full-usage-stats.js
--e 
 S2S-RESEARCH.md
 VOICE-LIVE-PLAN.md
 final_summary.txt
 patch-ar-voice.js
 patch-voice-i18n.js
 RELEASE_NOTES.md
--e 
 Office Tileset/
 calendar-rebuild-plan.md

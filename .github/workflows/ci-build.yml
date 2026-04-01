@@ -1,0 +1,75 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ develop, main, master ]
+  pull_request:
+    branches: [ develop, main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  build-smoke:
+    name: Build Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run renderer and Electron build
+        run: npm run build
+
+  package-windows:
+    name: Windows Packaging Smoke
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build installer package
+        run: npm run package
+
+      - name: Build portable package
+        run: npm run package:portable
+
+      - name: Upload packaging smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-packaging-smoke
+          path: |
+            release/WolfClaw-Desktop-Setup-*.exe
+            release/WolfClaw-Desktop-Setup-*.blockmap
+            release/WolfClaw Desktop *.exe
+            release/latest.yml
+          if-no-files-found: error
+          retention-days: 7

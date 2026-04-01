@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 // ═══════════════════════════════════════════════════════════
-// AEGIS Desktop — Preload Bridge
+// WolfClaw Desktop — Preload Bridge
 // ═══════════════════════════════════════════════════════════
 
 // Read installer language from process.argv (passed via additionalArguments in main.ts)
@@ -23,7 +23,7 @@ const api = {
 
   // ── Config ──
   config: {
-    // AEGIS app settings (aegis-config.json)
+    // Legacy desktop settings bridge (aegis-config.json compatibility)
     get: () => ipcRenderer.invoke('config:get'),
     save: (config: any) => ipcRenderer.invoke('config:save', config),
     // OpenClaw config (clawdbot.json) management
@@ -206,4 +206,4 @@ contextBridge.exposeInMainWorld('aegis', api);
 // Type declaration for renderer
 export type AegisAPI = typeof api;
 
-console.log('Æ AEGIS Preload v5.7.0 ready');
+console.log('WOLFCLAW preload ready');

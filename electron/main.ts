@@ -28,8 +28,14 @@ try {
   console.warn('[PTY] node-pty not available — Terminal disabled:', err.message);
 }
 
+const APP_DISPLAY_NAME = 'WolfClaw Desktop';
+const APP_USER_MODEL_ID = 'com.wolfclaw.desktop';
+const NEW_CONFIG_FILENAME = 'wolfclaw-config.json';
+const LEGACY_CONFIG_FILENAME = 'aegis-config.json';
+const LEGACY_USER_DATA_DIRS = ['AEGIS Desktop', 'aegis-desktop'];
+
 // Windows requires AppUserModelId for desktop notifications (especially in dev mode)
-app.setAppUserModelId('com.aegis.desktop');
+app.setAppUserModelId(APP_USER_MODEL_ID);
 
 // ═══════════════════════════════════════════════════════════
 // Device Identity (Ed25519) — Required for Gateway operator scopes
@@ -59,6 +65,24 @@ function getOrCreateDeviceIdentity(appPath: string): DeviceIdentity {
     }
   } catch (e) {
     console.error('[Device] Failed to load identity:', e);
+  }
+
+  // Migrate the legacy identity file from the old app data directory if present.
+  for (const legacyDir of LEGACY_USER_DATA_DIRS) {
+    const legacyIdentityPath = path.join(app.getPath('appData'), legacyDir, 'device-identity.json');
+    try {
+      if (!fs.existsSync(legacyIdentityPath)) continue;
+      const data = JSON.parse(fs.readFileSync(legacyIdentityPath, 'utf8'));
+      if (data.privateKeyPem && data.publicKeyPem && data.deviceId && data.publicKeyRawB64Url) {
+        fs.mkdirSync(path.dirname(identityPath), { recursive: true });
+        fs.copyFileSync(legacyIdentityPath, identityPath);
+        fs.chmodSync(identityPath, 0o600);
+        console.log('[Device] Migrated identity from legacy path:', legacyIdentityPath);
+        return data;
+      }
+    } catch (e) {
+      console.error('[Device] Failed to migrate legacy identity:', legacyIdentityPath, e);
+    }
   }
 
   // Generate new Ed25519 keypair
@@ -99,10 +123,14 @@ function getDeviceIdentity(): DeviceIdentity {
 // Config
 // ═══════════════════════════════════════════════════════════
 
-const CONFIG_PATH = path.join(app.getPath('userData'), 'aegis-config.json');
+const CONFIG_PATH = path.join(app.getPath('userData'), NEW_CONFIG_FILENAME);
+const LEGACY_CONFIG_PATHS = [
+  path.join(app.getPath('userData'), LEGACY_CONFIG_FILENAME),
+  ...LEGACY_USER_DATA_DIRS.map((dir) => path.join(app.getPath('appData'), dir, LEGACY_CONFIG_FILENAME)),
+];
 const isDev = !app.isPackaged;
 
-interface AegisConfig {
+interface DesktopConfig {
   gatewayUrl: string;
   gatewayToken: string;
   sharedFolder: string;
@@ -115,7 +143,7 @@ interface AegisConfig {
   openclawConfigPath?: string;
 }
 
-let config: AegisConfig = {
+let config: DesktopConfig = {
   gatewayUrl: 'ws://127.0.0.1:18789',
   gatewayToken: '',
   sharedFolder: 'D:\\clawdbot-shared',
@@ -129,8 +157,9 @@ let config: AegisConfig = {
 
 function loadConfig(): void {
   try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      const data = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const configPath = [CONFIG_PATH, ...LEGACY_CONFIG_PATHS].find((candidate) => fs.existsSync(candidate));
+    if (configPath) {
+      const data = JSON.parse(fs.readFileSync(configPath, 'utf8'));
       config = { ...config, ...data };
       // Backward compatibility with v2 config keys
       if (data.gatewayWsUrl && !data.gatewayUrl) {
@@ -138,6 +167,10 @@ function loadConfig(): void {
       }
       if (data.controlUiUrl && !data.gatewayUrl) {
         config.gatewayUrl = data.controlUiUrl.replace('http', 'ws');
+      }
+      if (configPath !== CONFIG_PATH) {
+        fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
       }
     }
     console.log('[Config] Loaded:', CONFIG_PATH);
@@ -148,8 +181,9 @@ function loadConfig(): void {
   }
 }
 
-function saveConfig(newConfig: Partial<AegisConfig>): void {
+function saveConfig(newConfig: Partial<DesktopConfig>): void {
   config = { ...config, ...newConfig };
+  fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   app.setLoginItemSettings({
     openAtLogin: config.startWithWindows,
@@ -173,7 +207,7 @@ function detectInstallerLanguage(): void {
     const langFile = path.join(process.resourcesPath, 'language.txt');
     if (fs.existsSync(langFile)) {
       const lang = fs.readFileSync(langFile, 'utf-8').trim();
-      if (lang === 'ar' || lang === 'en') installerLangGlobal = lang;
+      if (lang === 'ar' || lang === 'en' || lang === 'zh' || lang === 'es') installerLangGlobal = lang;
     }
   } catch { /* dev mode — no resources dir */ }
 }
@@ -238,8 +272,8 @@ function createSplashWindow(): void {
     </style>
     </head>
     <body>
-      <div class="logo">A</div>
-      <div class="title">AEGIS Desktop</div>
+      <div class="logo">W</div>
+      <div class="title">${APP_DISPLAY_NAME}</div>
       <div class="subtitle">${t('splash.loading')}</div>
       <div class="spinner"></div>
     </body>
@@ -443,16 +477,16 @@ function setupIPC(): void {
     } catch { /* ignore */ }
     return { ...config, configPath: CONFIG_PATH, ...(installerLang ? { installerLanguage: installerLang } : {}) };
   });
-  ipcMain.handle('config:save', (_e, newConfig: Partial<AegisConfig>) => {
+  ipcMain.handle('config:save', (_e, newConfig: Partial<DesktopConfig>) => {
     saveConfig(newConfig);
     return { success: true };
   });
 
   // TODO(v6): Unify config storage — currently aegis-config.json and localStorage
-  // can drift. See Bug #10 in AEGIS Desktop backlog (memory #1689).
+// can drift. See Bug #10 in the WolfClaw Desktop backlog (memory #1689).
   // ── Settings: sync individual key from UI (localStorage) → aegis-config.json ──
   ipcMain.handle('settings:save', (_e, key: string, value: any) => {
-    const configKeyMap: Partial<Record<string, keyof AegisConfig>> = {
+    const configKeyMap: Partial<Record<string, keyof DesktopConfig>> = {
       gatewayUrl: 'gatewayUrl',
       gatewayToken: 'gatewayToken',
       theme: 'theme',
@@ -461,7 +495,7 @@ function setupIPC(): void {
     };
     const configKey = configKeyMap[key];
     if (configKey) {
-      saveConfig({ [configKey]: value } as Partial<AegisConfig>);
+      saveConfig({ [configKey]: value } as Partial<DesktopConfig>);
       console.log(`[Settings] Synced to config: ${key} =`, configKey === 'gatewayToken' ? '***' : value);
     }
     return { success: true };
@@ -669,7 +703,7 @@ function setupIPC(): void {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientId: 'openclaw-control-ui',
-          clientName: 'AEGIS Desktop',
+          clientName: 'WolfClaw Desktop',
           platform: process.platform,
           scopes: ['operator.read', 'operator.write', 'operator.admin'],
         }),
@@ -721,7 +755,7 @@ function setupIPC(): void {
           height: 800,
           minWidth: 600,
           minHeight: 400,
-          title: `AEGIS Preview — ${data.title}`,
+          title: `WolfClaw Preview — ${data.title}`,
           backgroundColor: '#0d1117',
           autoHideMenuBar: true,
           webPreferences: {
@@ -742,7 +776,7 @@ function setupIPC(): void {
       } else {
         // Window exists — update content and focus
         previewWindow.webContents.send('artifact:content', data);
-        previewWindow.setTitle(`AEGIS Preview — ${data.title}`);
+        previewWindow.setTitle(`WolfClaw Preview — ${data.title}`);
         previewWindow.focus();
       }
 
@@ -993,7 +1027,7 @@ function setupIPC(): void {
 
   ipcMain.handle('screenshot:capture', async () => {
     try {
-      // Minimize AEGIS for clean screen capture
+// Minimize WolfClaw for clean screen capture
       const wasVisible = mainWindow!.isVisible() && !mainWindow!.isMinimized();
       if (wasVisible) mainWindow!.minimize();
       await new Promise((r) => setTimeout(r, 500));
@@ -1034,7 +1068,7 @@ function setupIPC(): void {
         thumbnailSize: { width: 400, height: 280 },
         fetchWindowIcons: true,
       });
-      // Return all windows (including AEGIS Desktop)
+// Return all windows (including WolfClaw Desktop)
       return sources
         .filter((s) => s.thumbnail && !s.thumbnail.isEmpty())
         .map((s) => ({
@@ -1049,7 +1083,7 @@ function setupIPC(): void {
 
   ipcMain.handle('screenshot:captureWindow', async (_e, windowId: string) => {
     try {
-      // For AEGIS own window, use native capture
+// For WolfClaw's own window, use native capture
       const ownWindowId = `window:${mainWindow!.getMediaSourceId()}`;
       const isOwnWindow = windowId === ownWindowId || windowId.includes(String(mainWindow!.id));
 
@@ -1083,7 +1117,7 @@ function setupIPC(): void {
       }
 
       // For other windows — get high-res thumbnail
-      // Minimize AEGIS briefly so it doesn't cover the target
+// Minimize WolfClaw briefly so it doesn't cover the target
       const wasVisible = mainWindow!.isVisible() && !mainWindow!.isMinimized();
       if (wasVisible) mainWindow!.minimize();
       await new Promise((r) => setTimeout(r, 400));
@@ -1094,7 +1128,7 @@ function setupIPC(): void {
       });
       const source = sources.find((s) => s.id === windowId);
 
-      // Restore AEGIS
+// Restore WolfClaw
       if (wasVisible) {
         mainWindow!.restore();
         mainWindow!.focus();
@@ -1464,5 +1498,5 @@ app.on('before-quit', () => {
   ptyProcesses.clear();
 });
 
-console.log('Æ AEGIS Desktop v5.7.0 started');
+console.log(`Æ ${APP_DISPLAY_NAME} v${app.getVersion()} started`);
 

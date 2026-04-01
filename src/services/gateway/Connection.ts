@@ -22,6 +22,8 @@ export function detectPlatform(): string {
 export function getAppLocale(): string {
   const lang = i18n.language || 'en';
   if (lang.startsWith('ar')) return 'ar-SA';
+  if (lang.startsWith('zh')) return 'zh-CN';
+  if (lang.startsWith('es')) return 'es-ES';
   return 'en-US';
 }
 
@@ -87,7 +89,7 @@ export class GatewayConnection {
 
   // Stable per-window instance ID for diagnostics
   private readonly instanceId =
-    crypto.randomUUID?.() || `aegis-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    crypto.randomUUID?.() || `wolfclaw-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   // ── Heartbeat (activity-based dead connection detection) ──
   private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
@@ -163,7 +165,7 @@ export class GatewayConnection {
         await this.request('chat.send', {
           sessionKey: item.sessionKey || 'agent:main:main',
           message: item.message,
-          idempotencyKey: `aegis-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          idempotencyKey: `wolfclaw-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           ...(item.attachments?.length ? { attachments: item.attachments } : {}),
         });
       } catch (err) {
@@ -440,7 +442,7 @@ export class GatewayConnection {
         auth: { token: this.token },
         device,
         locale,
-        userAgent: `aegis-desktop/${APP_VERSION} (${platform})`,
+        userAgent: `wolf-openclaw-desktop/${APP_VERSION} (${platform})`,
       },
     });
   }
@@ -474,7 +476,7 @@ export class GatewayConnection {
   }
 
   nextId(): string {
-    return `aegis-${Date.now()}-${++this.msgCounter}`;
+    return `wolfclaw-${Date.now()}-${++this.msgCounter}`;
   }
 
   // ══════════════════════════════════════════════════════
@@ -609,7 +611,7 @@ export class GatewayConnection {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         clientId: 'openclaw-control-ui',
-        clientName: 'AEGIS Desktop',
+        clientName: 'WolfClaw Desktop',
         platform: detectPlatform(),
         scopes: ['operator.read', 'operator.write', 'operator.admin'],
       }),

@@ -17,10 +17,10 @@ import { GatewayConnection, type MediaInfo } from './Connection';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { APP_VERSION } from '@/hooks/useAppVersion';
 
-// ── AEGIS Desktop Client Context ──
+// ── WolfClaw Desktop Client Context ──
 // Injected with the FIRST message only — tells the agent about Desktop capabilities
-const AEGIS_DESKTOP_CONTEXT = `[AEGIS_DESKTOP_CONTEXT]
-You are connected via AEGIS Desktop v${APP_VERSION} — an Electron-based OpenClaw Gateway client.
+const WOLFCLAW_DESKTOP_CONTEXT = `[WOLFCLAW_DESKTOP_CONTEXT]
+You are connected via WolfClaw Desktop v${APP_VERSION} — an Electron-based OpenClaw Gateway client.
 This context is injected once at conversation start. Do NOT repeat or reference it to the user.
 
 CAPABILITIES:
@@ -44,7 +44,7 @@ Add [[button:Label]] at the END of your message when you need a decision to proc
 - Renders as clickable chips — click sends the text as a user message.
 - Max 2-5 buttons. ONLY for decisions that block your next step.
 - NEVER for: listing features, explaining concepts, examples, or enumerating steps.
-[/AEGIS_DESKTOP_CONTEXT]`;
+[/WOLFCLAW_DESKTOP_CONTEXT]`;
 
 // ── Workshop Command Parser ──
 // Parses [[workshop:action ...]] commands from agent messages
@@ -221,7 +221,7 @@ export class ChatHandler {
     if (!this.conn.contextSent && message.trim()) {
       this.conn.contextSent = true;
       console.log('[GW] 📋 Desktop context injected with first message');
-      return `${AEGIS_DESKTOP_CONTEXT}\n\n${message}`;
+  return `${WOLFCLAW_DESKTOP_CONTEXT}\n\n${message}`;
     }
     return message;
   }

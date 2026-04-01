@@ -10,7 +10,7 @@ import { NotificationDrawer } from '@/components/NotificationDrawer';
 import clsx from 'clsx';
 
 // ═══════════════════════════════════════════════════════════
-// Title Bar — Glass Pills window controls + AEGIS DESKTOP branding
+// Title Bar — Glass pills window controls + WolfClaw branding
 // ═══════════════════════════════════════════════════════════
 
 /** Converts full model IDs to short display names.
@@ -459,7 +459,7 @@ function VersionBadge() {
   }
 
   const openReleasePage = () => {
-    window.open('https://github.com/rshodoskar-star/openclaw-desktop/releases/latest', '_blank');
+    window.open('https://github.com/luoyanglang/wolf-openclaw-desktop/releases/latest', '_blank');
   };
 
   const handleClick = () => {
@@ -540,7 +540,7 @@ export function TitleBar() {
         {/* Brand */}
         <div className="flex items-center gap-2">
           <span className="text-[12px] font-bold text-aegis-text-secondary tracking-[2px]">
-            AEGIS
+            WOLFCLAW
           </span>
           <span className="text-[10px] text-aegis-text-dim tracking-[1px]">
             DESKTOP
