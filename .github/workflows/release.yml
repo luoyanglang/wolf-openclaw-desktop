@@ -140,6 +140,10 @@ jobs:
     name: Publish GitHub Release
     needs: build-windows
     runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+      TELEGRAM_GROUP_ID: ${{ secrets.TELEGRAM_GROUP_ID }}
 
     steps:
       - name: Checkout code
@@ -349,11 +353,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify Telegram channel
-        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHANNEL_ID != '' }}
+        if: ${{ env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHANNEL_ID != '' }}
         uses: appleboy/telegram-action@master
         with:
-          to: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          to: ${{ env.TELEGRAM_CHANNEL_ID }}
+          token: ${{ env.TELEGRAM_BOT_TOKEN }}
           message: |
             🎉 WolfClaw Desktop ${{ needs.build-windows.outputs.release_tag }} 已发布
 
@@ -383,11 +387,11 @@ jobs:
             🙌 欢迎大家下载体验，有问题请通过 Issue 反馈。
 
       - name: Notify Telegram group
-        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_GROUP_ID != '' }}
+        if: ${{ env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_GROUP_ID != '' }}
         uses: appleboy/telegram-action@master
         with:
-          to: ${{ secrets.TELEGRAM_GROUP_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          to: ${{ env.TELEGRAM_GROUP_ID }}
+          token: ${{ env.TELEGRAM_BOT_TOKEN }}
           message: |
             🎉 WolfClaw Desktop ${{ needs.build-windows.outputs.release_tag }} 已发布
 
