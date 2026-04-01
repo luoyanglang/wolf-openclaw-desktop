@@ -119,10 +119,10 @@ jobs:
         run: npm ci
 
       - name: Build installer package
-        run: npm run package
+        run: npm run package -- --publish never
 
       - name: Build portable package
-        run: npm run package:portable
+        run: npm run package:portable -- --publish never
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
