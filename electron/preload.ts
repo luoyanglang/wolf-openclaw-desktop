@@ -109,6 +109,7 @@ const api = {
     saveToken: (token: string) => ipcRenderer.invoke('pairing:save-token', token),
     requestPairing: (httpBaseUrl: string) => ipcRenderer.invoke('pairing:request', httpBaseUrl),
     poll: (httpBaseUrl: string, deviceId: string) => ipcRenderer.invoke('pairing:poll', httpBaseUrl, deviceId),
+    readGatewayToken: () => ipcRenderer.invoke('pairing:read-gateway-token'),
   },
 
   // ── Artifacts Preview ──

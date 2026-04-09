@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release tag, for example v6.0.1'
+        description: 'Release tag, for example v6.0.2'
         required: true
-        default: 'v6.0.1'
+        default: 'v6.0.2'
       release_name:
         description: 'Optional release title override'
         required: false
@@ -100,6 +100,9 @@ jobs:
           if (-not $releaseName) {
             if ($releaseTag -eq "v6.0.1") {
               $releaseName = "WolfClaw Desktop v6.0.1 - Stability and Localization Update"
+            }
+            elseif ($releaseTag -eq "v6.0.2") {
+              $releaseName = "WolfClaw Desktop v6.0.2 - Runtime and Packaging Stability Update"
             }
             else {
               $releaseName = "WolfClaw Desktop $releaseTag"
@@ -262,6 +265,70 @@ jobs:
               - Fixed the first-open plugin runtime error (`t is not defined`)
               - Localized the pairing approval screen more completely
               - Improved screenshot upload robustness with lightweight pre-send optimization
+
+              ### Assets
+
+              - Windows installer
+              - Windows portable build
+              - `latest.yml` auto-update metadata
+              - `SHA256SUMS.txt` checksum file
+
+              ### Links
+
+              - Documentation: [README]({docs_en_url})
+              - Issue tracker: [Issues]({issues_url})
+              """
+            ).strip()
+          elif release_tag == "v6.0.2":
+            tg_highlights = [
+              "- 修复聊天代码块渲染与复制链路中的异常显示问题",
+              "- 修复异常 Markdown 代码围栏导致步骤说明和命令混在一起的问题",
+              "- 优化日历日视图返回路径，进入分时视图后返回更清晰",
+              "- 加固 Gateway 连接与审批链路，改进 token 异常、配对回退、限流重试和来源限制场景处理",
+              "- 升级 Electron 到 ^41.1.1，并提升 Windows 打包稳定性",
+            ]
+
+            release_body = textwrap.dedent(
+              f"""\
+              ## 中文说明
+
+              `{release_tag}` 是基于 `v6.0.1` 的一轮稳定性与维护更新，重点放在桌面运行时升级、Windows 打包稳定性、聊天代码块渲染修复，以及 Gateway 连接与审批链路加固。
+
+              ### 主要更新
+
+              - 修复聊天代码块区域中占位符文本直接泄露到界面的问题
+              - 修复异常 Markdown 代码围栏导致步骤说明和命令被错误合并的问题
+              - 优化日历日视图返回路径，减少进入分时视图后的操作困惑
+              - 加固 Gateway 连接与审批链路，改进 token 异常、配对回退、限流重试和来源限制场景下的处理表现
+              - 将 Electron 升级到 `^41.1.1`
+              - 改进 Windows 安装版与便携版的本地打包稳定性，并新增打包前清理步骤，避免旧输出干扰后续构建
+
+              ### 下载内容
+
+              - Windows 安装版
+              - Windows 便携版
+              - `latest.yml` 自动更新元数据
+              - `SHA256SUMS.txt` 校验文件
+
+              ### 反馈与文档
+
+              - 在线文档: [README.zh-CN]({docs_url})
+              - 问题反馈: [Issues]({issues_url})
+
+              ---
+
+              ## English Summary
+
+              `{release_tag}` is a stability and maintenance update on top of `v6.0.1`, focused on the desktop runtime upgrade, Windows packaging reliability, chat code-block rendering fixes, and stronger Gateway connection and approval handling.
+
+              ### Highlights
+
+              - Fixed raw interpolation placeholders leaking into chat code-block UI
+              - Fixed malformed markdown fence handling so commands and step descriptions no longer collapse into broken code blocks
+              - Improved the calendar day-view return flow
+              - Hardened Gateway connection and approval handling for token mismatch, pairing fallback, rate limiting, and origin-blocked cases
+              - Upgraded Electron to `^41.1.1`
+              - Improved Windows installer and portable packaging reliability with a pre-package cleanup step
 
               ### Assets
 

@@ -1,6 +1,6 @@
 {
   "name": "wolf-openclaw-desktop",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "WolfClaw Desktop - Desktop control center for OpenClaw Gateway",
   "main": "dist-electron/main.js",
   "author": "WolfClaw contributors",
@@ -15,8 +15,9 @@
     "build:electron": "node scripts/build-electron.js",
     "build:renderer": "vite build",
     "build": "node scripts/build-electron.js && vite build",
-    "package": "npm run build && electron-builder --win",
-    "package:portable": "npm run build && electron-builder --win portable"
+    "prepare:release": "node scripts/prepare-release.js",
+    "package": "npm run build && npm run prepare:release && electron-builder --win",
+    "package:portable": "npm run build && npm run prepare:release && electron-builder --win portable"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
@@ -55,7 +56,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.1.0",
-    "electron": "^35.7.5",
+    "electron": "^41.1.1",
     "electron-builder": "^26.8.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
@@ -69,7 +70,13 @@
     "copyright": "Copyright © 2026 WolfClaw contributors",
     "asar": true,
     "asarUnpack": [
-      "node_modules/node-pty/**/*"
+      "node_modules/node-pty/build/Release/**/*.dll",
+      "node_modules/node-pty/build/Release/**/*.exe",
+      "node_modules/node-pty/prebuilds/**/*.dll",
+      "node_modules/node-pty/prebuilds/**/*.exe",
+      "node_modules/node-pty/prebuilds/**/*.node",
+      "node_modules/node-pty/third_party/conpty/**/*.dll",
+      "node_modules/node-pty/third_party/conpty/**/*.exe"
     ],
     "compression": "maximum",
     "win": {

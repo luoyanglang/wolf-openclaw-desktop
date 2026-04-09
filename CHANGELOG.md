@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [6.0.2] - 2026-04-09
+
+### Fixed
+
+- **Chat code-block rendering and copy behavior** - fixed raw interpolation placeholders leaking into the chat UI and normalized malformed markdown fence handling so follow-up commands and step descriptions no longer collapse into broken code blocks.
+- **Calendar day-view return path** - improved the day-view navigation flow so returning from the timeline view is more explicit and less confusing during daily use.
+- **Gateway connection and approval hardening** - improved pairing-required, token-mismatch, origin-blocked, and rate-limited connection handling while adding approval-expiry cleanup and stronger approval capability negotiation.
+
+### Changed
+
+- **Electron 41 upgrade** - upgraded the desktop runtime from Electron `^35.7.5` to `^41.1.1` as part of the current shell and maintenance hardening pass.
+- **Windows packaging stability** - improved local installer and portable packaging reliability, including a dedicated pre-package cleanup step to avoid stale unpacked-output collisions during repeated builds.
+
+### Security
+
+- **Desktop shell maintenance** - completed the first local Electron 41 security and runtime upgrade pass while preserving the current app packaging and launch flow.
+
 ## [6.0.1] - 2026-04-01
 
 ### Added

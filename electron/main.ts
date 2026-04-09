@@ -543,6 +543,22 @@ function setupIPC(): void {
     return candidates[0];
   };
 
+  const readOpenClawConfig = (inputPath?: string): { data: any; path: string } => {
+    const configPath = inputPath || detectOpenClawConfigPath();
+    const raw = fs.readFileSync(configPath, 'utf-8');
+    let data: any;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      const cleaned = raw
+        .replace(/\/\/[^\n]*/g, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/,(\s*[}\]])/g, '$1');
+      data = JSON.parse(cleaned);
+    }
+    return { data, path: configPath };
+  };
+
   ipcMain.handle('config:detect', () => {
     const configPath = detectOpenClawConfigPath();
     return { path: configPath, exists: fs.existsSync(configPath) };
@@ -550,22 +566,9 @@ function setupIPC(): void {
 
   ipcMain.handle('config:read', (_e, inputPath?: string) => {
     try {
-      const configPath = inputPath || detectOpenClawConfigPath();
-      const raw = fs.readFileSync(configPath, 'utf-8');
-      let data: any;
-      // Try standard JSON first
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        // Basic JSON5 support: strip line comments, block comments, and trailing commas
-        const cleaned = raw
-          .replace(/\/\/[^\n]*/g, '')
-          .replace(/\/\*[\s\S]*?\*\//g, '')
-          .replace(/,(\s*[}\]])/g, '$1');
-        data = JSON.parse(cleaned);
-      }
-      console.log('[Config:read] Loaded from:', configPath);
-      return { data, path: configPath };
+      const result = readOpenClawConfig(inputPath);
+      console.log('[Config:read] Loaded from:', result.path);
+      return result;
     } catch (err: any) {
       console.error('[Config:read] Error:', err.message);
       throw new Error(`Failed to read config: ${err.message}`);
@@ -694,6 +697,42 @@ function setupIPC(): void {
     return { success: true };
   });
 
+  ipcMain.handle('pairing:read-gateway-token', () => {
+    try {
+      const { data, path: configPath } = readOpenClawConfig();
+      const token = typeof data?.auth?.token === 'string'
+        ? data.auth.token
+        : typeof data?.gateway?.token === 'string'
+          ? data.gateway.token
+          : typeof data?.gatewayToken === 'string'
+            ? data.gatewayToken
+            : typeof data?.controlUi?.token === 'string'
+              ? data.controlUi.token
+              : typeof data?.remote?.token === 'string'
+                ? data.remote.token
+                : typeof data?.token === 'string'
+                  ? data.token
+                  : null;
+      if (!token) {
+        const configDir = path.dirname(configPath);
+        const tokenFiles = [
+          path.join(configDir, 'gateway-token.txt'),
+          path.join(configDir, 'control-ui-token.txt'),
+        ];
+        for (const tokenFile of tokenFiles) {
+          if (!fs.existsSync(tokenFile)) continue;
+          const fileToken = fs.readFileSync(tokenFile, 'utf-8').trim();
+          if (fileToken) return { token: fileToken };
+        }
+      }
+      console.log('[Pairing] Read gateway token from:', configPath);
+      return { token };
+    } catch (err: any) {
+      console.warn('[Pairing] Read gateway token failed:', err.message);
+      return { token: null };
+    }
+  });
+
   ipcMain.handle('pairing:request', async (_e, httpBaseUrl: string) => {
     try {
       const url = `${httpBaseUrl}/v1/pair`;
@@ -705,7 +744,7 @@ function setupIPC(): void {
           clientId: 'openclaw-control-ui',
           clientName: 'WolfClaw Desktop',
           platform: process.platform,
-          scopes: ['operator.read', 'operator.write', 'operator.admin'],
+          scopes: ['operator.read', 'operator.write', 'operator.admin', 'operator.approvals'],
         }),
       });
       if (!res.ok) {

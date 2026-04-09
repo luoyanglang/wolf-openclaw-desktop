@@ -32,10 +32,11 @@ export default function CalendarPage() {
     loadEvents, syncPendingReminders,
   } = useCalendarStore();
 
-  // Modal state (local — not in global store)
+  // Modal state (local – not in global store)
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [modalDate, setModalDate] = useState<Date | undefined>();
+  const [lastOverviewView, setLastOverviewView] = useState<'month' | 'week'>('month');
 
   const year = selectedDate.getFullYear();
   const month = selectedDate.getMonth();
@@ -45,6 +46,12 @@ export default function CalendarPage() {
     loadEvents();
     syncPendingReminders().catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (view === 'month' || view === 'week') {
+      setLastOverviewView(view);
+    }
+  }, [view]);
 
   // Event count for current month
   const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
@@ -77,6 +84,10 @@ export default function CalendarPage() {
     setModalDate(undefined);
   }, []);
 
+  const handleBackToOverview = useCallback(() => {
+    setView(lastOverviewView);
+  }, [lastOverviewView, setView]);
+
   // ── Keyboard shortcuts ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -88,6 +99,9 @@ export default function CalendarPage() {
       switch (e.key) {
         case 'ArrowLeft': navigate(isRtl ? 1 : -1); break;
         case 'ArrowRight': navigate(isRtl ? -1 : 1); break;
+        case 'Escape':
+          if (view === 'day') handleBackToOverview();
+          break;
         case 't': case 'T': goToToday(); break;
         case 'm': case 'M': setView('month'); break;
         case 'w': case 'W': setView('week'); break;
@@ -100,7 +114,7 @@ export default function CalendarPage() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [showModal, isRtl, navigate, goToToday, setView, handleAddEvent, setCalendarSystem]);
+  }, [showModal, isRtl, navigate, view, handleBackToOverview, goToToday, setView, handleAddEvent, setCalendarSystem]);
 
   // ── Dynamic view title based on calendar system ──
   const viewTitle = useMemo(() => {
@@ -143,6 +157,12 @@ export default function CalendarPage() {
               className="p-1.5 rounded-lg bg-aegis-elevated border border-aegis-border text-aegis-text-muted hover:text-aegis-primary hover:border-[rgb(var(--color-teal-400)/0.3)] transition-colors">
               {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
             </button>
+            {view === 'day' && (
+              <button onClick={handleBackToOverview}
+                className="px-3 py-1.5 rounded-lg bg-aegis-elevated border border-aegis-border text-[13px] font-medium text-aegis-text hover:text-aegis-primary hover:border-[rgb(var(--color-teal-400)/0.3)] transition-colors">
+                {t('calendar.actions.backToCalendar')}
+              </button>
+            )}
             <h1 className="text-[20px] font-bold ms-2" style={{ color: colors.primary }}>
               {viewTitle}
             </h1>

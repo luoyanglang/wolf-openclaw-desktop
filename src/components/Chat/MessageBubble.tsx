@@ -14,7 +14,7 @@ import type { MessageBlock, Artifact, MetaItem } from '@/types/RenderBlock';
 import { useChatStore } from '@/stores/chatStore';
 import clsx from 'clsx';
 
-// ── Pin Button ──
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Pin Button 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 function PinButton({ messageId, text }: { messageId: string; text: string }) {
   const { t } = useTranslation();
   const isPinned = useChatStore((s) => s.pinnedMessages.some(p => p.id === messageId));
@@ -38,7 +38,7 @@ function PinButton({ messageId, text }: { messageId: string; text: string }) {
   );
 }
 
-// ── Agent Avatar — shows fetched avatar or fallback gradient ──
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Agent Avatar 闂?shows fetched avatar or fallback gradient 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 function AgentAvatar() {
   const avatarUrl = useChatStore((s) => s.agentAvatarUrl);
   const agentName = useChatStore((s) => s.agentName);
@@ -63,13 +63,13 @@ function AgentAvatar() {
   );
 }
 
-// ── Artifact Card Component ──
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Artifact Card Component 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 function ArtifactCard({ artifact }: { artifact: Artifact }) {
   const { t } = useTranslation();
   const [opening, setOpening] = useState(false);
 
   const typeIcons: Record<string, string> = {
-    html: '🌐', react: '⚛️', svg: '🎨', mermaid: '📊', code: '📝',
+    html: 'HTML', react: 'REACT', svg: 'SVG', mermaid: 'CHART', code: 'CODE',
   };
 
   const handleOpen = async () => {
@@ -88,7 +88,7 @@ function ArtifactCard({ artifact }: { artifact: Artifact }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-aegis-primary/10">
         <div className="flex items-center gap-2.5">
-          <span className="text-lg">{typeIcons[artifact.type] || '📄'}</span>
+          <span className="text-lg">{typeIcons[artifact.type] || 'FILE'}</span>
           <div>
             <div className="text-[13px] font-medium text-aegis-text">{artifact.title}</div>
             <div className="text-[10px] text-aegis-text-dim uppercase tracking-wider">{artifact.type}</div>
@@ -124,9 +124,9 @@ function ArtifactCard({ artifact }: { artifact: Artifact }) {
   );
 }
 
-// ── Collapsed Meta — thinking, workshop, system under reply ──
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Collapsed Meta 闂?thinking, workshop, system under reply 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 function CollapsedMeta({ items }: { items: MetaItem[] }) {
-  // All meta items start collapsed — user opens manually
+  // All meta items start collapsed 闂?user opens manually
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
   return (
@@ -157,34 +157,32 @@ function CollapsedMeta({ items }: { items: MetaItem[] }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// Message Bubble — Colors fixed for dark theme visibility
-// ═══════════════════════════════════════════════════════════
-
+// 闂佸磭鍎ら崝蹇涘疾閺屻儱鐓涢柟鑸妽濞呮粓鏌嶉悜妯哄闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸?// Message Bubble 闂?Colors fixed for dark theme visibility
+// 闂佸磭鍎ら崝蹇涘疾閺屻儱鐓涢柟鑸妽濞呮粓鏌嶉悜妯哄闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸闁硅埇鍔嶅▍婊堟煃閻戞ê濮€闁哄懏鐓￠崺锟犲箛閵婏附鐝抽梺宕囧劋閸斿繘寮查弻銉ョ厸?
 interface MessageBubbleProps {
   block: MessageBlock;
   onResend?: (content: string) => void;
   onRegenerate?: () => void;
 }
 
-// ── File Card Component ──
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?File Card Component 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 function FileCard({ path, meta }: { path: string; meta?: string }) {
   const name = path.split(/[/\\]/).pop() || path;
   const ext = name.split('.').pop()?.toLowerCase() || '';
   const icon: Record<string, string> = {
-    pdf: '📕', doc: '📘', docx: '📘', xls: '📗', xlsx: '📗', csv: '📗',
-    png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', svg: '🎨', webp: '🖼️',
-    mp3: '🎵', wav: '🎵', ogg: '🎵', mp4: '🎬', mkv: '🎬', mov: '🎬',
-    zip: '📦', tar: '📦', gz: '📦', '7z': '📦', rar: '📦',
-    ts: '📝', tsx: '📝', js: '📝', jsx: '📝', py: '📝', rs: '📝', go: '📝',
-    json: '📋', yaml: '📋', yml: '📋', toml: '📋', md: '📝', txt: '📝',
+    pdf: 'PDF', doc: 'DOC', docx: 'DOC', xls: 'XLS', xlsx: 'XLS', csv: 'CSV',
+    png: 'IMG', jpg: 'IMG', jpeg: 'IMG', gif: 'IMG', svg: 'SVG', webp: 'IMG',
+    mp3: 'AUDIO', wav: 'AUDIO', ogg: 'AUDIO', mp4: 'VIDEO', mkv: 'VIDEO', mov: 'VIDEO',
+    zip: 'ARCHIVE', tar: 'ARCHIVE', gz: 'ARCHIVE', '7z': 'ARCHIVE', rar: 'ARCHIVE',
+    ts: 'CODE', tsx: 'CODE', js: 'CODE', jsx: 'CODE', py: 'CODE', rs: 'CODE', go: 'CODE',
+    json: 'DATA', yaml: 'DATA', yml: 'DATA', toml: 'DATA', md: 'CODE', txt: 'CODE',
   };
 
   return (
     <div className="inline-flex items-center gap-2 px-3 py-1.5 my-1 rounded-lg
       bg-[rgb(var(--aegis-overlay)/0.05)] border border-[rgb(var(--aegis-overlay)/0.08)]
       hover:border-aegis-primary/20 transition-colors cursor-default max-w-full">
-      <span className="text-base shrink-0">{icon[ext] || '📄'}</span>
+      <span className="text-base shrink-0">{icon[ext] || 'FILE'}</span>
       <div className="min-w-0 flex flex-col">
         <span className="text-[12px] font-medium text-aegis-text truncate">{name}</span>
         {meta && <span className="text-[10px] text-aegis-text-dim">{meta}</span>}
@@ -193,7 +191,7 @@ function FileCard({ path, meta }: { path: string; meta?: string }) {
   );
 }
 
-// ── Check if message is recent (< 3 seconds old) for animation ──
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Check if message is recent (< 3 seconds old) for animation 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 function isRecent(timestamp: string): boolean {
   try {
     return Date.now() - new Date(timestamp).getTime() < 3000;
@@ -202,18 +200,32 @@ function isRecent(timestamp: string): boolean {
   }
 }
 
-// ── Progressive streaming: close incomplete fenced code blocks ──
-// Without this, ReactMarkdown breaks when streaming partial ```code blocks
-function closeIncompleteCodeBlocks(text: string): string {
-  // Count opening ``` (with optional lang) and closing ```
-  const fencePattern = /^```/gm;
-  const matches = text.match(fencePattern);
-  if (!matches || matches.length % 2 === 0) return text; // balanced or none
-  // Odd number of fences → there's an unclosed block, append closing fence
-  return text + '\n```';
+// ???? Progressive streaming: normalize malformed fences and close incomplete code blocks ????
+function normalizeFenceMarkdown(text: string): string {
+  return text
+    .split('\n')
+    .map((line) => {
+      const match = line.match(/^(\s*)([`~]{2,})([a-zA-Z0-9_-]+)?(\s*)$/);
+      if (!match) return line;
+
+      const [, indent, marker, language = '', trailing] = match;
+      return `${indent}${marker[0].repeat(3)}${language}${trailing}`;
+    })
+    .join('\n');
 }
 
-// ── Streaming markdown components — lightweight, no code highlighting ──
+// Without this, ReactMarkdown breaks when streaming partial ```code blocks
+function closeIncompleteCodeBlocks(text: string): string {
+  const normalized = normalizeFenceMarkdown(text);
+  // Count opening ``` (with optional lang) and closing ```
+  const fencePattern = /^```/gm;
+  const matches = normalized.match(fencePattern);
+  if (!matches || matches.length % 2 === 0) return normalized; // balanced or none
+  // Odd number of fences ??there's an unclosed block, append closing fence
+  return normalized + '\n```';
+}
+
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Streaming markdown components 闂?lightweight, no code highlighting 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 const streamingMarkdownComponents = {
   table({ children }: any) {
     return (
@@ -274,7 +286,7 @@ const streamingMarkdownComponents = {
   },
 };
 
-// ── Shared Markdown Components (final — with full syntax highlighting) ──
+// 闂佸啿鍘滈崑鎾绘煃閸忓浜?Shared Markdown Components (final 闂?with full syntax highlighting) 闂佸啿鍘滈崑鎾绘煃閸忓浜?
 const markdownComponents = {
   table({ children }: any) {
     return (
@@ -309,15 +321,15 @@ const markdownComponents = {
     return <ChatImage src={src} alt={alt} maxWidth="100%" maxHeight="400px" />;
   },
   p({ children }: any) {
-    // Detect file references: 📎 file: <path> (mime, size)
+    // Detect file references: 濡絽鍟幆?file: <path> (mime, size)
     if (typeof children === 'string' || (Array.isArray(children) && children.length === 1 && typeof children[0] === 'string')) {
       const text = typeof children === 'string' ? children : children[0];
-      const fileMatch = text.match(/^📎\s*file:\s*(.+?)(?:\s*\(([^)]+)\))?\s*$/);
+      const fileMatch = text.match(/^濡絽鍟幆娌憇*file:\s*(.+?)(?:\s*\(([^)]+)\))?\s*$/);
       if (fileMatch) {
         return <FileCard path={fileMatch[1].trim()} meta={fileMatch[2]?.trim()} />;
       }
-      // Voice reference: 🎤 [voice] <path> (duration)
-      const voiceMatch = text.match(/^🎤\s*\[voice\]\s*(.+?)(?:\s*\(([^)]+)\))?\s*$/);
+      // Voice reference: 濡絽鍟挧?[voice] <path> (duration)
+      const voiceMatch = text.match(/^濡絽鍟挧濯唖*\[voice\]\s*(.+?)(?:\s*\(([^)]+)\))?\s*$/);
       if (voiceMatch) {
         return <FileCard path={voiceMatch[1].trim()} meta={voiceMatch[2]?.trim() || 'voice'} />;
       }
@@ -355,9 +367,10 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
 
   // block.markdown is already cleaned, directives stripped, code detected
   const content = block.markdown;
+  const normalizedContent = useMemo(() => normalizeFenceMarkdown(content), [content]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(content);
+    await navigator.clipboard.writeText(normalizedContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -434,7 +447,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
             </div>
           )}
 
-          {/* Images from attachments — grid layout for multiple */}
+          {/* Images from attachments 闂?grid layout for multiple */}
           {block.images.length > 0 && (
             <div className={clsx(
               'mb-2 gap-1.5',
@@ -481,21 +494,21 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
               </div>
             </div>
           ) : block.isStreaming ? (
-            /* Progressive Markdown during streaming — renders headers, code, tables live */
+            /* Progressive Markdown during streaming 闂?renders headers, code, tables live */
             <div className="markdown-body text-[14px] leading-relaxed text-aegis-text">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={streamingMarkdownComponents}
               >
-                {closeIncompleteCodeBlocks(content)}
+                {closeIncompleteCodeBlocks(normalizedContent)}
               </ReactMarkdown>
               <span className="inline-block w-[2px] h-[16px] bg-aegis-primary/60 ml-0.5 align-text-bottom animate-pulse" />
             </div>
           ) : (
             <div className="markdown-body text-[14px] leading-relaxed text-aegis-text">
-              {content && (
+              {normalizedContent && (
                 <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
-                  {content}
+                  {normalizedContent}
                 </ReactMarkdown>
               )}
             </div>
@@ -512,7 +525,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
           )}
         </div>
 
-        {/* Footer — Time + Actions */}
+        {/* Footer 闂?Time + Actions */}
         <div className="flex items-center gap-2 mt-1 px-1 h-5">
           <span className="text-[10px] text-aegis-text-muted font-mono">{timeStr}</span>
 
@@ -529,7 +542,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
                   <Copy size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
                 )}
               </button>
-              {/* Read Aloud — assistant only, text > 50 chars */}
+              {/* Read Aloud 闂?assistant only, text > 50 chars */}
               {block.role === 'assistant' && content.length > 50 && (
                 <button
                   onClick={handleSpeak}
@@ -551,7 +564,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
                   <RotateCcw size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
                 </button>
               )}
-              {/* Regenerate — assistant only */}
+              {/* Regenerate 闂?assistant only */}
               {block.role === 'assistant' && onRegenerate && (
                 <button
                   onClick={onRegenerate}
@@ -561,7 +574,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
                   <RefreshCw size={11} className="text-aegis-text-muted hover:text-aegis-text-secondary" />
                 </button>
               )}
-              {/* Expand — assistant only, for long messages */}
+              {/* Expand 闂?assistant only, for long messages */}
               {block.role === 'assistant' && content.length > 500 && (
                 <button
                   onClick={() => setExpanded(v => !v)}
@@ -574,7 +587,7 @@ export const MessageBubble = memo(function MessageBubble({ block, onResend, onRe
                   }
                 </button>
               )}
-              {/* Edit — user only */}
+              {/* Edit 闂?user only */}
               {block.role === 'user' && onResend && (
                 <button
                   onClick={() => { setIsEditing(true); setEditText(block.markdown); }}
