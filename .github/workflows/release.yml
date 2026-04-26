@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -113,7 +113,7 @@ jobs:
           "release_name=$releaseName" >> $env:GITHUB_OUTPUT
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -128,7 +128,7 @@ jobs:
         run: npm run package:portable -- --publish never
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-artifacts
           path: |
@@ -150,12 +150,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-artifacts
           path: ./release-artifacts
@@ -407,7 +407,7 @@ jobs:
 
       - name: Create GitHub release
         id: github_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.build-windows.outputs.release_tag }}
           target_commitish: ${{ github.sha }}
@@ -421,7 +421,7 @@ jobs:
 
       - name: Notify Telegram channel
         if: ${{ env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHANNEL_ID != '' }}
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ env.TELEGRAM_CHANNEL_ID }}
           token: ${{ env.TELEGRAM_BOT_TOKEN }}
@@ -455,7 +455,7 @@ jobs:
 
       - name: Notify Telegram group
         if: ${{ env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_GROUP_ID != '' }}
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ env.TELEGRAM_GROUP_ID }}
           token: ${{ env.TELEGRAM_BOT_TOKEN }}
